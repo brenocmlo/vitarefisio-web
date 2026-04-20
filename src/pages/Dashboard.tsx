@@ -7,10 +7,16 @@ import {
   TrendingUp, 
   UserX,
   Clock,
-  ExternalLink
+  ExternalLink,
+  UserPlus,
+  CalendarPlus,
+  DollarSign
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
+import { PatientFormModal } from '../components/PatientFormModal';
+import { AppointmentFormModal } from '../components/AppointmentFormModal';
 
 interface Metrics {
   hoje: {
@@ -27,8 +33,11 @@ interface Metrics {
 
 export function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -131,19 +140,44 @@ export function Dashboard() {
             <h3 className="font-bold mb-2">Atalhos Rápidos</h3>
             <p className="text-blue-100 text-sm mb-6">Ações frequentes para agilizar o seu dia a dia.</p>
             <div className="grid grid-cols-1 gap-3">
-              <button className="bg-white/10 hover:bg-white/20 p-3 rounded-lg text-sm font-medium transition-all text-left">
-                + Novo Paciente
+              <button 
+                onClick={() => setIsPatientModalOpen(true)}
+                className="bg-white/10 hover:bg-white/20 p-3 rounded-lg text-sm font-medium transition-all text-left flex items-center gap-3"
+              >
+                <UserPlus className="w-4 h-4" />
+                Novo Paciente
               </button>
-              <button className="bg-white/10 hover:bg-white/20 p-3 rounded-lg text-sm font-medium transition-all text-left">
-                + Novo Agendamento
+              <button 
+                onClick={() => setIsAppointmentModalOpen(true)}
+                className="bg-white/10 hover:bg-white/20 p-3 rounded-lg text-sm font-medium transition-all text-left flex items-center gap-3"
+              >
+                <CalendarPlus className="w-4 h-4" />
+                Novo Agendamento
               </button>
-              <button className="bg-white/10 hover:bg-white/20 p-3 rounded-lg text-sm font-medium transition-all text-left">
+              <button 
+                onClick={() => navigate('/financeiro')}
+                className="bg-white/10 hover:bg-white/20 p-3 rounded-lg text-sm font-medium transition-all text-left flex items-center gap-3"
+              >
+                <DollarSign className="w-4 h-4" />
                 Lançar Pagamento
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modais dos Atalhos Rápidos */}
+      <PatientFormModal 
+        isOpen={isPatientModalOpen} 
+        onClose={() => setIsPatientModalOpen(false)} 
+        onSuccess={() => { setIsPatientModalOpen(false); }} 
+      />
+      <AppointmentFormModal 
+        isOpen={isAppointmentModalOpen} 
+        onClose={() => setIsAppointmentModalOpen(false)} 
+        onSuccess={() => { setIsAppointmentModalOpen(false); }} 
+        selectedDate={new Date()} 
+      />
     </div>
   );
 }

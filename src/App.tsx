@@ -8,6 +8,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Patients } from './pages/Patients';
 import { MedicalRecord } from './pages/MedicalRecord';
 import { Agenda } from './pages/Agenda';
+import { Financeiro } from './pages/Financeiro';
 
 function PrivateRoute({ children }: { children: ReactElement }) {
   const { signed, loading } = useAuth();
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/agenda" element={<PrivateRoute><Layout><Agenda/></Layout></PrivateRoute>} />
         <Route path="/pacientes" element={<PrivateRoute><Layout><Patients /></Layout></PrivateRoute>} />
         <Route path="/pacientes/:id/prontuario" element={<PrivateRoute><Layout><MedicalRecord /></Layout></PrivateRoute>}/>
+        <Route path="/financeiro" element={<PrivateRoute><Layout><Financeiro /></Layout></PrivateRoute>}/>
         
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

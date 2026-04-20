@@ -9,8 +9,8 @@ interface Patient {
   id: number;
   nome: string;
   cpf: string;
-  telefone: string;
-  convenio?: string;
+  contato_whatsapp: string;
+  convenio_nome?: string;
 }
 
 export function Patients() {
@@ -94,10 +94,10 @@ export function Patients() {
                   <tr key={patient.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-800">{patient.nome}</td>
                     <td className="px-6 py-4 text-slate-600 text-sm">{patient.cpf}</td>
-                    <td className="px-6 py-4 text-slate-600 text-sm">{patient.telefone}</td>
+                    <td className="px-6 py-4 text-slate-600 text-sm">{patient.contato_whatsapp || '—'}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-md text-xs font-bold ${patient.convenio ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
-                        {patient.convenio || 'Particular'}
+                      <span className={`px-2 py-1 rounded-md text-xs font-bold ${patient.convenio_nome ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+                        {patient.convenio_nome || 'Particular'}
                       </span>
                     </td>
                     <td className="px-6 py-4">

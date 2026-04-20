@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { ChevronLeft, ChevronRight, Clock, Plus, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, Plus, CheckCircle2, Trash2 } from 'lucide-react';
 import { format, addDays, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AppointmentFormModal } from '../components/AppointmentFormModal';
+import { toast } from 'sonner';
 
 export function Agenda() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -11,6 +12,28 @@ export function Agenda() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const timeSlots = Array.from({ length: 11 }, (_, i) => i + 8); // 08:00 às 18:00
+
+  async function handleCancelAppointment(id: number) {
+    if (confirm('Deseja realmente cancelar este agendamento?')) {
+      try {
+        await api.delete(`/agendamentos/${id}`);
+        toast.success('Agendamento cancelado com sucesso!');
+        loadAppointments();
+      } catch (error: any) {
+        toast.error(error.response?.data?.error || 'Erro ao cancelar agendamento');
+      }
+    }
+  }
+
+  async function handleStatusChange(id: number, status: string) {
+    try {
+      await api.patch(`/agendamentos/${id}/status`, { status });
+      toast.success('Status atualizado!');
+      loadAppointments();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao atualizar status');
+    }
+  }
 
   async function loadAppointments() {
     const response = await api.get('/agendamentos', {
@@ -50,8 +73,25 @@ export function Agenda() {
               <div className="flex-1 p-2">
                 {appointment ? (
                   <div className="h-full bg-blue-50 border-l-4 border-blue-500 p-3 rounded-r-lg flex justify-between items-center">
-                    <p className="text-sm font-bold text-blue-900">Paciente #{appointment.paciente_id}</p>
-                    <button className="p-2 text-emerald-600"><CheckCircle2 className="w-4 h-4" /></button>
+                    <p className="text-sm font-bold text-blue-900">
+                      {appointment.paciente?.nome || `Paciente #${appointment.paciente_id}`}
+                    </p>
+                    <div className="flex gap-2 items-center">
+                      <select 
+                        value={appointment.status || 'agendado'}
+                        onChange={(e) => handleStatusChange(appointment.id, e.target.value)}
+                        className="text-xs font-medium bg-white border border-slate-200 rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="agendado">Agendado</option>
+                        <option value="confirmado">Confirmado</option>
+                        <option value="realizado">Realizado</option>
+                        <option value="faltou">Faltou</option>
+                        <option value="cancelado">Cancelado</option>
+                      </select>
+                      <button onClick={() => handleCancelAppointment(appointment.id)} className="p-2 text-red-500 hover:bg-red-100 rounded-full transition-colors" title="Deletar Agendamento">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <button onClick={() => setIsModalOpen(true)} className="w-full h-full border-2 border-dashed border-transparent hover:border-slate-200 text-slate-300 italic text-sm">

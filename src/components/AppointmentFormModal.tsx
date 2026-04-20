@@ -43,8 +43,8 @@ export function AppointmentFormModal({ isOpen, onClose, onSuccess, selectedDate 
   async function handleSchedule(data: AppointmentFormValues) {
     try {
       setIsSubmitting(true);
-      // Combinar data e hora para o formato que o backend espera
-      const data_hora = `${data.data}T${data.hora}:00`;
+      // Combinar data e hora para o formato ISO que o backend espera (com Z no final)
+      const data_hora = `${data.data}T${data.hora}:00Z`;
       
       await api.post('/agendamentos', {
         clinica_id: user?.clinica_id,

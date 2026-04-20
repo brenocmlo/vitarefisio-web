@@ -5,6 +5,7 @@ interface User {
   id: number;
   nome: string;
   email: string;
+  clinica_id?: number;
 }
 
 interface SignInCredentials {
