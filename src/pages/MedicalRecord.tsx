@@ -1,11 +1,12 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { History, Plus, Lock, Clock, Calendar, CheckCircle2 } from 'lucide-react';
+import { History, Plus, Lock, Clock, Calendar, CheckCircle2, Layers } from 'lucide-react';
 import { format, isAfter, addHours } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EvolutionFormModal } from '../components/EvolutionFormModal';
 import { AnamneseForm } from '../components/AnamneseForm';
+import { PackagesTab } from '../components/PackagesTab';
 
 export function MedicalRecord() {
   const { id } = useParams();
@@ -13,7 +14,7 @@ export function MedicalRecord() {
   const [evolutions, setEvolutions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'anamnese' | 'evolucoes'>('anamnese');
+  const [activeTab, setActiveTab] = useState<'anamnese' | 'evolucoes' | 'pacotes'>('anamnese');
 
   async function loadData() {
     try {
@@ -61,8 +62,8 @@ export function MedicalRecord() {
         <button
           onClick={() => setActiveTab('anamnese')}
           className={`pb-4 text-sm font-bold transition-all border-b-2 ${
-            activeTab === 'anamnese' 
-              ? 'border-blue-600 text-blue-600' 
+            activeTab === 'anamnese'
+              ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-slate-400 hover:text-slate-700'
           }`}
         >
@@ -71,12 +72,23 @@ export function MedicalRecord() {
         <button
           onClick={() => setActiveTab('evolucoes')}
           className={`pb-4 text-sm font-bold transition-all border-b-2 ${
-            activeTab === 'evolucoes' 
-              ? 'border-blue-600 text-blue-600' 
+            activeTab === 'evolucoes'
+              ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-slate-400 hover:text-slate-700'
           }`}
         >
           Histórico Clínico (Evoluções)
+        </button>
+        <button
+          onClick={() => setActiveTab('pacotes')}
+          className={`pb-4 text-sm font-bold transition-all border-b-2 flex items-center gap-1.5 ${
+            activeTab === 'pacotes'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-400 hover:text-slate-700'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          Pacotes de Sessões
         </button>
       </div>
 
@@ -208,8 +220,15 @@ export function MedicalRecord() {
         </div>
       )}
 
+      {/* ABA: PACOTES DE SESSÕES */}
+      {activeTab === 'pacotes' && id && (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <PackagesTab pacienteId={id} pacienteNome={patient?.nome} />
+        </div>
+      )}
+
       {/* MODAL PARA NOVA EVOLUÇÃO */}
-      <EvolutionFormModal 
+      <EvolutionFormModal
         isOpen={isModalOpen}
         patientId={id!}
         onClose={() => setIsModalOpen(false)}
