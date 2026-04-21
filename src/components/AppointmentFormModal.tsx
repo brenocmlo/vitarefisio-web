@@ -1,127 +1,98 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { X, Loader2, CalendarCheck } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { X, Calendar, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
 
-const appointmentSchema = z.object({
-  paciente_id: z.string().nonempty('Selecione um paciente'),
-  fisioterapeuta_id: z.string().nonempty('Selecione um fisioterapeuta'),
-  data: z.string().nonempty('Data obrigatória'),
-  hora: z.string().nonempty('Hora obrigatória'),
-  observacoes: z.string().optional(),
-});
-
-type AppointmentFormValues = z.infer<typeof appointmentSchema>;
-
-export function AppointmentFormModal({ isOpen, onClose, onSuccess, selectedDate }: any) {
+export function AppointmentFormModal({ isOpen, onClose, onSuccess, selectedDate, defaultHour }: any) {
   const { user } = useAuth();
   const [patients, setPatients] = useState<any[]>([]);
-  const [fisioterapeutas, setFisioterapeutas] = useState<any[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ paciente_id: '', hora: '08:00', observacoes: '' });
 
   useEffect(() => {
     if (isOpen) {
-      api.get('/pacientes', { params: { clinica_id: user?.clinica_id } }).then(res => setPatients(res.data));
-      api.get('/fisioterapeutas', { params: { clinica_id: user?.clinica_id } }).then(res => setFisioterapeutas(res.data));
+      setFormData(prev => ({ ...prev, hora: defaultHour }));
+      api.get('/pacientes').then(res => setPatients(res.data));
     }
-  }, [isOpen, user?.clinica_id]);
+  }, [isOpen, defaultHour]);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<AppointmentFormValues>({
-    resolver: zodResolver(appointmentSchema),
-    defaultValues: {
-      data: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
-      fisioterapeuta_id: user?.id ? String(user.id) : ''
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.id) return toast.error("Sessão expirada. Faça login novamente.");
+
+    try {
+      // 1. Extrai apenas o dia, mês e ano da data selecionada no calendário
+      const dataFormatada = format(selectedDate, 'yyyy-MM-dd');
+      
+      // 2. Monta a string no padrão ISO 8601 EXATO exigido pelo backend
+      // O "-03:00" avisa o servidor que esta é a hora local do Brasil,
+      // impedindo que o banco de dados adicione horas e jogue para o dia seguinte.
+      const dataHoraFinal = `${dataFormatada}T${formData.hora}:00-03:00`;
+
+      await api.post('/agendamentos', {
+        paciente_id: Number(formData.paciente_id),
+        data_hora: dataHoraFinal,
+        observacoes: formData.observacoes,
+        clinica_id: user?.clinica_id || 1,
+        fisioterapeuta_id: user?.id
+      });
+
+      toast.success("Agendamento concluído!");
+      onSuccess();
+      onClose();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Erro ao agendar.");
     }
-  });
+  };
 
   if (!isOpen) return null;
 
-  async function handleSchedule(data: AppointmentFormValues) {
-    try {
-      setIsSubmitting(true);
-      // Combinar data e hora para o formato ISO que o backend espera (com Z no final)
-      const data_hora = `${data.data}T${data.hora}:00Z`;
-      
-      await api.post('/agendamentos', {
-        clinica_id: user?.clinica_id,
-        paciente_id: Number(data.paciente_id),
-        fisioterapeuta_id: Number(data.fisioterapeuta_id),
-        data_hora,
-        observacoes: data.observacoes,
-        status: 'agendado'
-      });
-
-      toast.success('Consulta agendada!');
-      onSuccess();
-      onClose();
-    } catch (error) {
-      toast.error('Horário indisponível ou erro no sistema.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl animate-in zoom-in duration-200">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <CalendarCheck className="w-6 h-6 text-blue-600" /> Agendar Sessão
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <h2 className="font-bold flex items-center gap-2 text-slate-800">
+            <Calendar className="text-blue-600" /> Novo Agendamento
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-            <X className="w-5 h-5 text-slate-500" />
-          </button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X /></button>
         </div>
-
-        <form onSubmit={handleSubmit(handleSchedule)} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Paciente</label>
-            <select 
-              {...register('paciente_id')}
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="">Selecione um paciente...</option>
-              {patients.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
-            </select>
-            {errors.paciente_id && <p className="text-xs text-red-500 mt-1">{errors.paciente_id.message}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Fisioterapeuta</label>
-            <select 
-              {...register('fisioterapeuta_id')}
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="">Selecione um fisioterapeuta...</option>
-              {fisioterapeutas.map(f => <option key={f.id} value={f.id}>{f.nome}</option>)}
-              {fisioterapeutas.length === 0 && user && (
-                <option value={user.id}>{user.nome} (Você)</option>
-              )}
-            </select>
-            {errors.fisioterapeuta_id && <p className="text-xs text-red-500 mt-1">{errors.fisioterapeuta_id.message}</p>}
-          </div>
-
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <select 
+            required 
+            value={formData.paciente_id} 
+            onChange={e => setFormData({...formData, paciente_id: e.target.value})} 
+            className="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Selecione o Paciente...</option>
+            {patients.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+          </select>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Data</label>
-              <input type="date" {...register('data')} className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Hora</label>
-              <input type="time" {...register('hora')} className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none" />
+            <select 
+              value={formData.hora} 
+              onChange={e => setFormData({...formData, hora: e.target.value})} 
+              className="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {Array.from({ length: 11 }, (_, i) => i + 8).map(h => {
+                const time = `${h.toString().padStart(2, '0')}:00`;
+                return <option key={time} value={time}>{time}</option>
+              })}
+            </select>
+            <div className="p-2.5 bg-slate-50 border rounded-xl text-sm font-bold text-slate-600 text-center">
+              {format(selectedDate, "dd/MM/yyyy")}
             </div>
           </div>
-
+          <textarea 
+            value={formData.observacoes} 
+            onChange={e => setFormData({...formData, observacoes: e.target.value})} 
+            className="w-full p-3 border rounded-xl h-24 outline-none focus:ring-2 focus:ring-blue-500" 
+            placeholder="Observações (Opcional)" 
+          />
           <button 
             type="submit" 
-            disabled={isSubmitting}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+            className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all"
           >
-            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirmar Agendamento'}
+            Confirmar Agendamento
           </button>
         </form>
       </div>

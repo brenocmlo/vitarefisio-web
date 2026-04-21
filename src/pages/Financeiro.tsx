@@ -1,232 +1,208 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { DollarSign, ArrowUpCircle, TrendingUp, Plus, X } from 'lucide-react';
+import { 
+  DollarSign, 
+  TrendingUp, 
+  AlertCircle, 
+  Calendar,
+  Clock,
+  Plus,
+  ArrowUpRight,
+  CreditCard,
+  Wallet
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+// IMPORTAÇÃO DO MODAL
+import { PaymentFormModal } from '../components/PaymentFormModal'; 
 
 export function Financeiro() {
-  const [pagamentos, setPagamentos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [formData, setFormData] = useState({
-    valor: '',
-    forma_pagamento: 'pix',
-    paciente_id: '',
-    agendamento_id: '',
+  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar o Modal
+  const [stats, setStats] = useState({
+    totalRecebido: 0,
+    aReceber: 0,
+    faturamentoMes: 0
   });
+  const [transacoes, setTransacoes] = useState<any[]>([]);
 
-  async function loadPagamentos() {
+  async function loadFinanceiro() {
     try {
       setLoading(true);
       const response = await api.get('/pagamentos');
-      setPagamentos(response.data);
+      
+      if (response.data.stats) {
+        setStats(response.data.stats);
+        setTransacoes(response.data.recentes);
+      } else {
+        setTransacoes(response.data);
+      }
     } catch (error) {
-      console.error('Erro ao carregar financeiro', error);
-      toast.error('Erro ao carregar dados financeiros');
+      toast.error("Erro ao carregar dados financeiros");
+      console.error(error);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadPagamentos();
+    loadFinanceiro();
   }, []);
 
-  async function handleRegisterPayment(e: React.FormEvent) {
-    e.preventDefault();
-    try {
-      setIsSubmitting(true);
-      await api.post('/pagamentos', {
-        valor: Number(formData.valor),
-        forma_pagamento: formData.forma_pagamento,
-        paciente_id: formData.paciente_id ? Number(formData.paciente_id) : undefined,
-        agendamento_id: formData.agendamento_id ? Number(formData.agendamento_id) : undefined,
-      });
-      toast.success('Pagamento registrado com sucesso!');
-      setIsModalOpen(false);
-      setFormData({ valor: '', forma_pagamento: 'pix', paciente_id: '', agendamento_id: '' });
-      loadPagamentos();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Erro ao registrar pagamento');
-    } finally {
-      setIsSubmitting(false);
-    }
+  if (loading) {
+    return <div className="flex items-center justify-center h-full text-slate-400 font-medium">Carregando balanço financeiro...</div>;
   }
 
-  const totalReceitas = pagamentos.reduce((acc, curr) => acc + Number(curr.valor), 0);
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-slate-800">Financeiro</h1>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all shadow-sm"
-        >
-          <Plus className="w-5 h-5" />
-          Registrar Pagamento
-        </button>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Fluxo de Caixa</h1>
+          <p className="text-sm text-slate-500 font-medium">Controle de entradas e previsões da clínica</p>
+        </div>
+        <div className="flex gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 shadow-sm">
+            <Calendar className="w-4 h-4 text-blue-500" />
+            <span className="capitalize">{format(new Date(), 'MMMM yyyy', { locale: ptBR })}</span>
+          </div>
+          
+          {/* BOTÃO AGORA FUNCIONAL */}
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-95"
+          >
+            <Plus className="w-4 h-4" /> Novo Lançamento
+          </button>
+        </div>
       </div>
 
-      {/* Cards de Resumo */}
+      {/* CARDS DE RESUMO (DASHBOARD) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-center gap-4">
-          <div className="p-3 bg-emerald-50 rounded-lg text-emerald-600">
-            <ArrowUpCircle className="w-8 h-8" />
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+            <TrendingUp className="w-16 h-16 text-emerald-600" />
           </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500">Receitas Totais</p>
-            <h3 className="text-2xl font-bold text-slate-800">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalReceitas)}
-            </h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-center gap-4">
-          <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
-            <TrendingUp className="w-8 h-8" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-500">Pagamentos Realizados</p>
-            <h3 className="text-2xl font-bold text-slate-800">{pagamentos.length}</h3>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Recebido</p>
+          <h3 className="text-3xl font-black text-slate-800">
+            R$ {stats.totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </h3>
+          <div className="mt-4 flex items-center gap-1.5 text-emerald-600 text-[10px] font-bold bg-emerald-50 w-fit px-2 py-0.5 rounded-full">
+            <ArrowUpRight className="w-3 h-3" /> SALDO EM CONTA
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex items-center gap-4 bg-gradient-to-br from-slate-800 to-slate-900 text-white">
-          <div className="p-3 bg-white/10 rounded-lg">
-            <DollarSign className="w-8 h-8 text-emerald-400" />
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+            <AlertCircle className="w-16 h-16 text-amber-600" />
           </div>
-          <div>
-            <p className="text-sm font-medium text-slate-300">Saldo Atual</p>
-            <h3 className="text-2xl font-bold text-white">
-              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalReceitas)}
-            </h3>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">A Receber / Pendente</p>
+          <h3 className="text-3xl font-black text-slate-800">
+            R$ {stats.aReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </h3>
+          <div className="mt-4 flex items-center gap-1.5 text-amber-600 text-[10px] font-bold bg-amber-50 w-fit px-2 py-0.5 rounded-full">
+            <Clock className="w-3 h-3" /> AGUARDANDO PAGAMENTO
           </div>
+        </div>
+
+        <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-20">
+            <DollarSign className="w-16 h-16 text-white" />
+          </div>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Faturamento Total</p>
+          <h3 className="text-3xl font-black text-white">
+            R$ {stats.faturamentoMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </h3>
+          <p className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Total bruto acumulado no mês</p>
         </div>
       </div>
 
-      {/* Tabela de Pagamentos */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
-          <h2 className="font-bold text-slate-800">Histórico de Transações</h2>
+      {/* TABELA DE MOVIMENTAÇÕES RECENTES */}
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2">
+            <Wallet className="w-4 h-4 text-blue-600" />
+            Últimas Movimentações
+          </h3>
+          <button className="text-blue-600 text-[10px] font-black uppercase tracking-widest hover:text-blue-800 transition-colors">
+            Exportar Relatório
+          </button>
         </div>
+        
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-100 text-slate-500 text-sm">
-                <th className="px-6 py-4 font-medium">Data</th>
-                <th className="px-6 py-4 font-medium">Paciente</th>
-                <th className="px-6 py-4 font-medium">Forma de Pagto</th>
-                <th className="px-6 py-4 font-medium">Valor</th>
+              <tr className="bg-white text-[10px] uppercase tracking-widest text-slate-400 font-black">
+                <th className="px-6 py-4 border-b border-slate-50">Status</th>
+                <th className="px-6 py-4 border-b border-slate-50">Paciente / Origem</th>
+                <th className="px-6 py-4 border-b border-slate-50">Data</th>
+                <th className="px-6 py-4 border-b border-slate-50">Forma</th>
+                <th className="px-6 py-4 border-b border-slate-50 text-right">Valor</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {loading ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-slate-400">Carregando financeiro...</td>
-                </tr>
-              ) : pagamentos.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-slate-400">Nenhum pagamento registrado.</td>
-                </tr>
-              ) : (
-                pagamentos.map((pagamento) => (
-                  <tr key={pagamento.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 text-slate-600 text-sm">
-                      {format(new Date(pagamento.data_pagamento), "dd/MM/yyyy HH:mm")}
-                    </td>
-                    <td className="px-6 py-4 font-medium text-slate-800">
-                      {pagamento.paciente?.nome || `Paciente #${pagamento.paciente_id}`}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 rounded-md text-xs font-bold uppercase bg-slate-100 text-slate-600">
-                        {pagamento.forma_pagamento}
+              {transacoes.length > 0 ? transacoes.map((t) => (
+                <tr key={t.id} className="hover:bg-slate-50/80 transition-all cursor-default">
+                  <td className="px-6 py-4">
+                    <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg uppercase tracking-tighter ${
+                      t.status === 'pago' 
+                        ? 'bg-emerald-100 text-emerald-700' 
+                        : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {t.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-sm font-bold text-slate-700">{t.paciente?.nome || 'Lançamento Avulso'}</p>
+                    <div className="flex items-center gap-1 mt-0.5">
+                       <span className="text-[9px] font-bold text-slate-400 uppercase">Ref:</span>
+                       <span className="text-[9px] font-mono font-bold text-blue-500">#{t.agendamento_id || 'N/A'}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-slate-600">
+                        {format(new Date(t.created_at || new Date()), 'dd/MM/yyyy')}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 font-bold text-emerald-600">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(pagamento.valor))}
-                    </td>
-                  </tr>
-                ))
+                      <span className="text-[9px] text-slate-400 font-medium">
+                        Às {format(new Date(t.created_at || new Date()), 'HH:mm')}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-3.5 h-3.5 text-slate-300" />
+                      <span className="text-xs font-bold text-slate-500 capitalize">{t.forma_pagamento || t.metodo_pagamento}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <span className="text-sm font-black text-slate-800 font-mono">
+                      R$ {Number(t.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan={5} className="px-6 py-20 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <DollarSign className="w-10 h-10 text-slate-100" />
+                      <p className="text-slate-400 text-sm font-medium italic">Nenhuma movimentação financeira encontrada.</p>
+                    </div>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Modal Simplificado de Pagamento */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-xl">
-            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h2 className="font-bold text-slate-800">Novo Pagamento</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleRegisterPayment} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Valor (R$)</label>
-                <input 
-                  type="number" 
-                  step="0.01" 
-                  required
-                  value={formData.valor}
-                  onChange={(e) => setFormData({...formData, valor: e.target.value})}
-                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" 
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Forma de Pagamento</label>
-                <select 
-                  value={formData.forma_pagamento}
-                  onChange={(e) => setFormData({...formData, forma_pagamento: e.target.value})}
-                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                >
-                  <option value="pix">PIX</option>
-                  <option value="cartao_credito">Cartão de Crédito</option>
-                  <option value="cartao_debito">Cartão de Débito</option>
-                  <option value="dinheiro">Dinheiro</option>
-                  <option value="transferencia">Transferência</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">ID do Paciente</label>
-                  <input 
-                    type="number" 
-                    required
-                    value={formData.paciente_id}
-                    onChange={(e) => setFormData({...formData, paciente_id: e.target.value})}
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">ID Agendamento (Opcional)</label>
-                  <input 
-                    type="number" 
-                    value={formData.agendamento_id}
-                    onChange={(e) => setFormData({...formData, agendamento_id: e.target.value})}
-                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" 
-                  />
-                </div>
-              </div>
-              <div className="pt-4">
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold transition-all"
-                >
-                  {isSubmitting ? 'Salvando...' : 'Registrar Pagamento'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* COMPONENTE DO MODAL INSERIDO AQUI */}
+      <PaymentFormModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={loadFinanceiro}
+      />
     </div>
   );
 }

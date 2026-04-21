@@ -1,137 +1,164 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import { Save, Clipboard, Activity, Stethoscope, HeartPulse } from 'lucide-react';
 import { toast } from 'sonner';
-import { Loader2, Save } from 'lucide-react';
 
-interface AnamneseFormValues {
-  queixa_principal: string;
-  historico_doenca_atual: string;
-  historico_patologico_pregresso: string;
-  medicamentos_em_uso: string;
-  exames_complementares: string;
-  observacoes: string;
-}
-
-interface Props {
+interface AnamneseProps {
   pacienteId: string;
 }
 
-export function AnamneseForm({ pacienteId }: Props) {
+export function AnamneseForm({ pacienteId }: AnamneseProps) {
   const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    queixa_principal: '',
+    hda: '', // Histórico da Doença Atual
+    hpp: '', // Histórico Patológico Pregresso
+    medicacoes: '',
+    exame_fisico: '',
+    objetivos_tratamento: '',
+    conduta_inicial: ''
+  });
 
-  const { register, handleSubmit, reset } = useForm<AnamneseFormValues>();
-
+  // Carrega os dados se já existirem no banco
   useEffect(() => {
     async function loadAnamnese() {
       try {
-        setLoading(true);
         const response = await api.get(`/pacientes/${pacienteId}/anamnese`);
-        if (response.data && Object.keys(response.data).length > 0) {
-          reset(response.data);
+        if (response.data) {
+          setFormData(response.data);
         }
-      } catch (error) {
-        console.error('Erro ao carregar anamnese', error);
+      } catch (err) {
+        // Se der 404, apenas ignoramos pois é o primeiro preenchimento
+        console.log("Anamnese não encontrada, iniciando formulário limpo.");
       } finally {
         setLoading(false);
       }
     }
     loadAnamnese();
-  }, [pacienteId, reset]);
+  }, [pacienteId]);
 
-  async function handleSaveAnamnese(data: AnamneseFormValues) {
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
     try {
-      setIsSubmitting(true);
-      await api.post(`/pacientes/${pacienteId}/anamnese`, data);
+      await api.post(`/pacientes/${pacienteId}/anamnese`, formData);
       toast.success('Anamnese salva com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao salvar anamnese');
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Erro ao salvar anamnese');
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
-  }
+  };
 
-  if (loading) {
-    return <div className="p-8 text-center text-slate-500">Carregando anamnese...</div>;
-  }
+  if (loading) return <div className="text-center p-10 text-slate-400">Carregando ficha de avaliação...</div>;
 
   return (
-    <form onSubmit={handleSubmit(handleSaveAnamnese)} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
+    <form onSubmit={handleSave} className="space-y-6 animate-in fade-in duration-500">
+      
+      {/* SEÇÃO: HISTÓRICO CLÍNICO */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+          <Clipboard className="w-5 h-5 text-blue-600" />
+          <h3 className="font-bold text-slate-800">Histórico Clínico</h3>
+        </div>
+        <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Queixa Principal (QP)</label>
-            <textarea
-              {...register('queixa_principal')}
-              rows={3}
-              placeholder="Motivo principal da busca por atendimento..."
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 focus:bg-white transition-colors"
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Queixa Principal</label>
+            <textarea 
+              className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none h-20 resize-none"
+              placeholder="O que trouxe o paciente à clínica?"
+              value={formData.queixa_principal}
+              onChange={e => setFormData({...formData, queixa_principal: e.target.value})}
             />
           </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">H.D.A (História da Doença Atual)</label>
+              <textarea 
+                className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none h-32 resize-none"
+                placeholder="Início dos sintomas, evolução, fatores de melhora/piora..."
+                value={formData.hda}
+                onChange={e => setFormData({...formData, hda: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">H.P.P (História Patológica Pregressa)</label>
+              <textarea 
+                className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none h-32 resize-none"
+                placeholder="Cirurgias, fraturas, doenças crônicas, traumas..."
+                value={formData.hpp}
+                onChange={e => setFormData({...formData, hpp: e.target.value})}
+              />
+            </div>
+          </div>
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">História da Doença Atual (HDA)</label>
-            <textarea
-              {...register('historico_doenca_atual')}
-              rows={4}
-              placeholder="Como e quando começou? Sintomas associados..."
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 focus:bg-white transition-colors"
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-2 flex items-center gap-1">
+              <HeartPulse className="w-3 h-3" /> Medicações em uso
+            </label>
+            <input 
+              type="text"
+              className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="Liste os remédios que o paciente toma"
+              value={formData.medicacoes}
+              onChange={e => setFormData({...formData, medicacoes: e.target.value})}
             />
           </div>
         </div>
+      </div>
 
-        <div className="space-y-4">
+      {/* SEÇÃO: EXAME FÍSICO E CONDUTA */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center gap-2">
+          <Activity className="w-5 h-5 text-emerald-600" />
+          <h3 className="font-bold text-slate-800">Avaliação Física e Conduta</h3>
+        </div>
+        <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Histórico Patológico Pregresso (HPP)</label>
-            <textarea
-              {...register('historico_patologico_pregresso')}
-              rows={3}
-              placeholder="Cirurgias prévias, doenças crônicas (ex: HAS, DM)..."
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 focus:bg-white transition-colors"
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Exame Físico (Inspeção/Palpação/Testes)</label>
+            <textarea 
+              className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none h-32 resize-none"
+              placeholder="Postura, amplitude de movimento, força manual, testes ortopédicos específicos..."
+              value={formData.exame_fisico}
+              onChange={e => setFormData({...formData, exame_fisico: e.target.value})}
             />
           </div>
-
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Medicamentos em Uso</label>
-            <textarea
-              {...register('medicamentos_em_uso')}
-              rows={2}
-              placeholder="Quais medicamentos o paciente utiliza regularmente?"
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 focus:bg-white transition-colors"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Objetivos do Tratamento</label>
+              <textarea 
+                className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none"
+                placeholder="Ex: Reduzir dor na escala visual analógica para 2 em 4 semanas..."
+                value={formData.objetivos_tratamento}
+                onChange={e => setFormData({...formData, objetivos_tratamento: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Conduta Inicial</label>
+              <textarea 
+                className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none"
+                placeholder="Técnicas e recursos que serão utilizados..."
+                value={formData.conduta_inicial}
+                onChange={e => setFormData({...formData, conduta_inicial: e.target.value})}
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-bold text-slate-700 mb-2">Exames Complementares</label>
-        <textarea
-          {...register('exames_complementares')}
-          rows={2}
-          placeholder="Ressonância, Raio-X, Ultrassom (Laudos e datas)..."
-          className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 focus:bg-white transition-colors"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-bold text-slate-700 mb-2">Observações Adicionais</label>
-        <textarea
-          {...register('observacoes')}
-          rows={2}
-          placeholder="Estilo de vida, ergonomia no trabalho, etc..."
-          className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none bg-slate-50 focus:bg-white transition-colors"
-        />
-      </div>
-
-      <div className="flex justify-end pt-4 border-t border-slate-100">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors disabled:opacity-70 shadow-sm"
+      {/* BOTÃO SALVAR FIXO/BOTTOM */}
+      <div className="flex justify-end pb-10">
+        <button 
+          type="submit" 
+          disabled={isSaving}
+          className="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all disabled:opacity-50"
         >
-          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-          Salvar Anamnese
+          {isSaving ? 'Salvando...' : (
+            <>
+              <Save className="w-5 h-5" /> Salvar Ficha de Anamnese
+            </>
+          )}
         </button>
       </div>
     </form>
