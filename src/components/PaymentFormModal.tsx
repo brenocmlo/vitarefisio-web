@@ -4,23 +4,37 @@ import { X, DollarSign, User, CreditCard, Layers, Hash } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../hooks/useAuth';
 
-export function PaymentFormModal({ isOpen, onClose, onSuccess }: any) {
+interface PaymentFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  defaultPacienteId?: string; // Pré-seleciona paciente (ex: quando aberto do prontuário)
+  defaultIsPacote?: boolean;  // Abre direto no modo pacote
+}
+
+export function PaymentFormModal({ isOpen, onClose, onSuccess, defaultPacienteId, defaultIsPacote = false }: PaymentFormModalProps) {
   const { user } = useAuth();
   const [patients, setPatients] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState({
-    paciente_id: '',
+    paciente_id: defaultPacienteId || '',
     valor: '',
     forma_pagamento: 'pix',
-    is_pacote: false, // <-- NOVO
-    quantidade_sessoes: '10', // <-- NOVO
+    is_pacote: defaultIsPacote,
+    quantidade_sessoes: '10',
     status: 'pago'
   });
 
   useEffect(() => {
     if (isOpen) {
       api.get('/pacientes').then(response => setPatients(response.data));
+      // Sincroniza as defaults sempre que o modal abre
+      setFormData(prev => ({
+        ...prev,
+        paciente_id: defaultPacienteId || prev.paciente_id,
+        is_pacote: defaultIsPacote
+      }));
     }
   }, [isOpen]);
 
@@ -40,7 +54,7 @@ export function PaymentFormModal({ isOpen, onClose, onSuccess }: any) {
       toast.success(formData.is_pacote ? "Pacote ativado com sucesso!" : "Pagamento registrado!");
       onSuccess();
       onClose();
-      setFormData({ paciente_id: '', valor: '', forma_pagamento: 'pix', is_pacote: false, quantidade_sessoes: '10', status: 'pago' });
+      setFormData({ paciente_id: defaultPacienteId || '', valor: '', forma_pagamento: 'pix', is_pacote: defaultIsPacote, quantidade_sessoes: '10', status: 'pago' });
     } catch (error: any) {
       toast.error("Erro ao processar.");
     } finally { setIsSubmitting(false); }
