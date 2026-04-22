@@ -7,6 +7,8 @@ import {
   Calendar as CalendarIcon,
   LayoutGrid,
   Clock3,
+  XCircle,
+  Loader2,
 } from 'lucide-react';
 import {
   format,
@@ -36,6 +38,11 @@ export function Agenda() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedHour, setSelectedHour] = useState('08:00');
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
+
+  function getApiMessage(error: any) {
+    return error?.response?.data?.message || error?.response?.data?.error || 'Não foi possível concluir a ação.';
+  }
 
   async function loadAppointments() {
     try {
@@ -67,6 +74,19 @@ export function Agenda() {
       toast.success('Status atualizado!');
     } catch (error) {
       toast.error('Erro ao atualizar status.');
+    }
+  }
+
+  async function handleCancelAppointment(agendamentoId: number) {
+    try {
+      setCancellingId(agendamentoId);
+      await api.delete(`/agendamentos/${agendamentoId}`);
+      setAppointments((prev) => prev.filter((app) => app.id !== agendamentoId && app.status !== 'cancelado'));
+      toast.success('Agendamento cancelado com sucesso.');
+    } catch (error: any) {
+      toast.error(getApiMessage(error));
+    } finally {
+      setCancellingId(null);
     }
   }
 
@@ -194,6 +214,32 @@ export function Agenda() {
                             <option value="realizado">Realizado</option>
                             <option value="faltou">Faltou</option>
                           </select>
+                          <div className="mt-3 grid grid-cols-1 gap-2">
+                            <Link
+                              to={`/pacientes/${app.paciente_id}/prontuario`}
+                              className="secondary-button w-full justify-center px-3 py-2.5 text-center text-xs"
+                            >
+                              Ver prontuário
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => handleCancelAppointment(app.id)}
+                              disabled={cancellingId === app.id}
+                              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-3 py-2.5 text-center text-xs font-bold text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-200 dark:hover:bg-red-400/15"
+                            >
+                              {cancellingId === app.id ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Cancelando...
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="h-4 w-4 shrink-0" />
+                                  <span className="whitespace-normal break-words leading-4">Cancelar agendamento</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
                       );
                     })}

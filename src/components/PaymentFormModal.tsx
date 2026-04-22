@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { X, DollarSign, CreditCard, Layers } from 'lucide-react';
+import { X, DollarSign, CreditCard, Layers, CheckCircle2, Clock3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../hooks/useAuth';
 
@@ -13,6 +13,20 @@ interface PaymentFormModalProps {
 }
 
 const paymentMethods = ['pix', 'dinheiro', 'cartao_credito', 'convenio'] as const;
+const paymentStatuses = [
+  {
+    value: 'pago',
+    label: 'Sim, já foi pago',
+    description: 'Lançamento entra como recebido.',
+    icon: CheckCircle2,
+  },
+  {
+    value: 'pendente',
+    label: 'Não, ainda está pendente',
+    description: 'Lançamento entra como a receber.',
+    icon: Clock3,
+  },
+] as const;
 
 export function PaymentFormModal({
   isOpen,
@@ -183,12 +197,43 @@ export function PaymentFormModal({
             </div>
           </div>
 
+          <div>
+            <label className="form-label">Pagamento confirmado?</label>
+            <div className="grid gap-2">
+              {paymentStatuses.map((statusOption) => {
+                const Icon = statusOption.icon;
+                const active = formData.status === statusOption.value;
+
+                return (
+                  <button
+                    key={statusOption.value}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, status: statusOption.value })}
+                    className={`flex items-start gap-3 rounded-2xl border px-4 py-3 text-left transition-all ${
+                      active
+                        ? 'border-sky-400/40 bg-sky-500/10'
+                        : 'border-slate-200 bg-white/60 hover:border-sky-300 hover:bg-sky-500/5 dark:border-slate-700 dark:bg-slate-900/60'
+                    }`}
+                  >
+                    <div className={`mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl ${active ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{statusOption.label}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{statusOption.description}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="flex gap-3">
             <button type="button" onClick={onClose} className="secondary-button flex-1">
               Cancelar
             </button>
             <button type="submit" disabled={isSubmitting} className="primary-button flex-1">
-              {isSubmitting ? 'Processando...' : 'Confirmar recebimento'}
+              {isSubmitting ? 'Processando...' : formData.status === 'pago' ? 'Confirmar recebimento' : 'Salvar como pendente'}
             </button>
           </div>
         </form>

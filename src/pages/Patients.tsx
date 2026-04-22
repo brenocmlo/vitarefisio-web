@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import api from '../services/api';
-import { Search, UserPlus, FileText, MoreVertical, Users, ShieldCheck } from 'lucide-react';
+import { Search, UserPlus, FileText, MoreVertical, Users, ShieldCheck, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PatientFormModal } from '../components/PatientFormModal';
 import { useAuth } from '../hooks/useAuth';
+import { toast } from 'sonner';
 
 interface Patient {
   id: number;
@@ -19,6 +20,8 @@ export function Patients() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [deletingPatientId, setDeletingPatientId] = useState<number | null>(null);
 
   async function loadPatients() {
     try {
@@ -38,6 +41,20 @@ export function Patients() {
     loadPatients();
   }, [user?.clinica_id]);
 
+  useEffect(() => {
+    function handleOutsideClick() {
+      setOpenMenuId(null);
+    }
+
+    if (openMenuId !== null) {
+      window.addEventListener('click', handleOutsideClick);
+    }
+
+    return () => {
+      window.removeEventListener('click', handleOutsideClick);
+    };
+  }, [openMenuId]);
+
   const filteredPatients = useMemo(
     () =>
       patients.filter(
@@ -46,6 +63,23 @@ export function Patients() {
       ),
     [patients, searchTerm]
   );
+
+  async function handleDeletePatient(patient: Patient) {
+    const confirmed = window.confirm(`Deseja remover o paciente "${patient.nome}"? Esta ação não pode ser desfeita.`);
+    if (!confirmed) return;
+
+    try {
+      setDeletingPatientId(patient.id);
+      await api.delete(`/pacientes/${patient.id}`);
+      setPatients((prev) => prev.filter((item) => item.id !== patient.id));
+      toast.success('Paciente removido com sucesso.');
+      setOpenMenuId(null);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.response?.data?.error || 'Não foi possível remover o paciente.');
+    } finally {
+      setDeletingPatientId(null);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -144,9 +178,35 @@ export function Patients() {
                         >
                           <FileText className="h-4 w-4" />
                         </Link>
-                        <button className="icon-button h-10 w-10" title="Mais opções">
-                          <MoreVertical className="h-4 w-4" />
-                        </button>
+                        <div className="relative">
+                          <button
+                            className="icon-button h-10 w-10"
+                            title="Mais opções"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId((current) => (current === patient.id ? null : patient.id));
+                            }}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </button>
+
+                          {openMenuId === patient.id && (
+                            <div
+                              className="surface-panel absolute right-0 top-12 z-20 min-w-[200px] p-2"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePatient(patient)}
+                                disabled={deletingPatientId === patient.id}
+                                className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-70 dark:text-red-200 dark:hover:bg-red-400/10"
+                              >
+                                <Trash2 className="h-4 w-4 shrink-0" />
+                                {deletingPatientId === patient.id ? 'Removendo paciente...' : 'Remover paciente'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>
