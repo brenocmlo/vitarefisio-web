@@ -150,7 +150,7 @@ export function MedicalRecord() {
                           {format(createdAt, "dd 'de' MMM 'de' yyyy", { locale: ptBR })}
                         </div>
                         {evolution.finalizada ? (
-                          <span className="status-chip bg-slate-200/80 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                          <span className="status-chip chip-neutral">
                             <Lock className="h-3.5 w-3.5" />
                             Assinada
                           </span>

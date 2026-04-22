@@ -47,7 +47,7 @@ export function PackagesTab({ pacienteId, pacienteNome }: PackagesTabProps) {
   const statusConfig = {
     pago: { label: 'Pago', icon: CheckCircle2, color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-500/12 dark:bg-emerald-400/12' },
     pendente: { label: 'Pendente', icon: Clock, color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-500/12 dark:bg-amber-400/12' },
-    cancelado: { label: 'Cancelado', icon: XCircle, color: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-200/70 dark:bg-slate-800' },
+    cancelado: { label: 'Cancelado', icon: XCircle, color: 'text-slate-700 dark:text-slate-200', bg: 'bg-slate-200/70 dark:bg-slate-800' },
   };
 
   if (loading) {

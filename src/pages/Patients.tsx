@@ -130,11 +130,7 @@ export function Patients() {
                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{patient.contato_whatsapp || '—'}</td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
-                          patient.convenio_nome
-                            ? 'bg-sky-500/10 text-sky-700 dark:bg-sky-400/10 dark:text-sky-300'
-                            : 'bg-slate-200/70 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                        }`}
+                        className={patient.convenio_nome ? 'chip-brand' : 'chip-neutral'}
                       >
                         {patient.convenio_nome || 'Particular'}
                       </span>

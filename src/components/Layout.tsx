@@ -100,7 +100,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <div className="relative flex min-h-screen">
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-[292px] transform p-4 transition-transform duration-300 lg:static lg:w-[300px] lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-40 w-[86vw] max-w-[320px] transform p-3 sm:p-4 transition-transform duration-300 lg:static lg:w-[300px] lg:max-w-none lg:translate-x-0 ${
             mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -221,8 +221,8 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        <main className="flex min-w-0 flex-1 flex-col px-4 pb-6 pt-4 sm:px-5 lg:px-6">
-          <header className="surface-panel sticky top-4 z-20 mb-6 overflow-hidden px-5 py-4 sm:px-6">
+        <main className="flex min-w-0 flex-1 flex-col px-3 pb-5 pt-3 sm:px-5 sm:pb-6 sm:pt-4 lg:px-6">
+          <header className="surface-panel sticky top-3 z-20 mb-5 overflow-hidden px-4 py-4 sm:top-4 sm:mb-6 sm:px-6">
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/50 to-transparent" />
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex items-start gap-3">
@@ -234,19 +234,19 @@ export function Layout({ children }: { children: ReactNode }) {
                 >
                   <PanelLeft className="h-5 w-5" />
                 </button>
-                <div>
+                <div className="min-w-0">
                   <p className="eyebrow mb-2">Painel operacional</p>
-                  <h1 className="font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
+                  <h1 className="font-display text-xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50 sm:text-2xl">
                     {currentPage.title}
                   </h1>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400 sm:text-[15px]">
                     {currentPage.description}
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="surface-muted flex items-center gap-3 px-3 py-2.5">
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                <div className="surface-muted flex w-full items-center gap-3 px-3 py-2.5 sm:w-auto">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300">
                     {initials ? (
                       <span className="text-sm font-extrabold">{initials}</span>
@@ -254,8 +254,8 @@ export function Layout({ children }: { children: ReactNode }) {
                       <UserIcon className="h-5 w-5" />
                     )}
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{user?.nome}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{user?.nome}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">Fisioterapeuta em atendimento</p>
                   </div>
                 </div>

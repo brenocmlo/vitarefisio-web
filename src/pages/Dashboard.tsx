@@ -105,23 +105,23 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <section className="hero-panel relative overflow-hidden p-6 sm:p-8">
+      <section className="hero-panel relative overflow-hidden p-5 sm:p-8">
         <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
         <div className="grid gap-8 xl:grid-cols-[1.3fr_0.7fr]">
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-sky-50">
+            <div className="mb-4 inline-flex max-w-full items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-sky-50 sm:px-4 sm:text-xs sm:tracking-[0.22em]">
               <Sparkles className="h-3.5 w-3.5" />
-              {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+              <span className="truncate">{format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}</span>
             </div>
-            <h1 className="font-display max-w-2xl text-3xl font-extrabold leading-tight sm:text-4xl">
+            <h1 className="font-display max-w-2xl text-2xl font-extrabold leading-tight sm:text-4xl">
               Olá, {user?.nome}. Seu panorama clínico está pronto para hoje.
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-sky-50/85 sm:text-base">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-sky-50/90 sm:text-base sm:leading-7">
               Veja rapidamente o ritmo da agenda, o comportamento financeiro e os próximos atendimentos para manter o dia fluindo com mais clareza.
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+          <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-1">
             <button onClick={() => setIsPatientModalOpen(true)} className="rounded-[24px] border border-white/15 bg-white/10 px-5 py-4 text-left transition-colors hover:bg-white/15">
               <UserPlus className="mb-3 h-5 w-5 text-sky-100" />
               <p className="font-semibold">Novo paciente</p>
@@ -149,7 +149,7 @@ export function Dashboard() {
 
       <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="surface-panel overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-200/70 px-6 py-5 dark:border-slate-700/80">
+          <div className="flex flex-col gap-3 border-b border-slate-200/70 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 dark:border-slate-700/80">
             <div>
               <p className="eyebrow mb-2">Atendimentos</p>
               <h3 className="font-display text-xl font-extrabold text-slate-950 dark:text-slate-50">Próximos do dia</h3>
@@ -174,7 +174,7 @@ export function Dashboard() {
               metrics?.hoje.proximos_pacientes.map((item: any) => (
                 <div
                   key={item.id}
-                  className="flex flex-col gap-4 px-6 py-5 transition-colors hover:bg-sky-500/[0.04] sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 px-5 py-5 transition-colors hover:bg-sky-500/[0.04] sm:flex-row sm:items-center sm:justify-between sm:px-6"
                 >
                   <div className="flex items-center gap-4">
                     <div className="flex h-14 w-14 flex-col items-center justify-center rounded-[22px] bg-sky-500/10 text-sky-700 dark:bg-sky-400/10 dark:text-sky-300">
@@ -205,7 +205,7 @@ export function Dashboard() {
         </div>
 
         <div className="grid gap-6">
-          <div className="surface-panel p-6">
+          <div className="surface-panel p-5 sm:p-6">
             <div className="mb-5 flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-[22px] bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300">
                 <Activity className="h-5 w-5" />
@@ -235,7 +235,7 @@ export function Dashboard() {
             </div>
           </div>
 
-          <div className="surface-card p-6">
+          <div className="surface-card p-5 sm:p-6">
             <p className="eyebrow mb-3">Próximo passo</p>
             <h3 className="font-display text-xl font-extrabold text-slate-950 dark:text-slate-50">
               Quer acelerar o fluxo de trabalho?
@@ -272,12 +272,12 @@ export function Dashboard() {
 
 function MetricCard({ title, value, icon: Icon, accent }: any) {
   return (
-    <div className="stat-card">
+    <div className="stat-card p-5 sm:p-6">
       <div className="absolute right-4 top-4 h-24 w-24 rounded-full bg-[var(--hero-glow)] blur-2xl" />
       <div className="relative flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{title}</p>
-          <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
+          <h2 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50 sm:text-3xl">
             {value}
           </h2>
         </div>
@@ -292,12 +292,12 @@ function MetricCard({ title, value, icon: Icon, accent }: any) {
 function InsightRow({ label, value, description }: { label: string; value: string; description: string }) {
   return (
     <div className="surface-muted p-4">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{label}</p>
           <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">{description}</p>
         </div>
-        <span className="text-sm font-extrabold text-sky-700 dark:text-sky-300">{value}</span>
+        <span className="text-sm font-extrabold text-sky-700 dark:text-sky-300 sm:text-right">{value}</span>
       </div>
     </div>
   );

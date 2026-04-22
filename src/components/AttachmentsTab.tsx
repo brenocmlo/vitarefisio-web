@@ -38,7 +38,7 @@ const TIPOS = [
   { value: 'laudo', label: 'Laudo', icon: ClipboardList, color: 'bg-violet-500/12 text-violet-700 dark:bg-violet-400/12 dark:text-violet-300' },
   { value: 'receita', label: 'Receita', icon: Pill, color: 'bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300' },
   { value: 'atestado', label: 'Atestado', icon: FileCheck2, color: 'bg-amber-500/12 text-amber-700 dark:bg-amber-400/12 dark:text-amber-300' },
-  { value: 'outro', label: 'Outro', icon: FileText, color: 'bg-slate-200/70 text-slate-700 dark:bg-slate-800 dark:text-slate-300' },
+  { value: 'outro', label: 'Outro', icon: FileText, color: 'chip-neutral' },
 ];
 
 function formatBytes(bytes: number): string {
