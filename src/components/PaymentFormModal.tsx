@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { X, DollarSign, User, CreditCard, Layers, Hash } from 'lucide-react';
+import { X, DollarSign, CreditCard, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../hooks/useAuth';
 
@@ -8,11 +8,19 @@ interface PaymentFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  defaultPacienteId?: string; // Pré-seleciona paciente (ex: quando aberto do prontuário)
-  defaultIsPacote?: boolean;  // Abre direto no modo pacote
+  defaultPacienteId?: string;
+  defaultIsPacote?: boolean;
 }
 
-export function PaymentFormModal({ isOpen, onClose, onSuccess, defaultPacienteId, defaultIsPacote = false }: PaymentFormModalProps) {
+const paymentMethods = ['pix', 'dinheiro', 'cartao_credito', 'convenio'] as const;
+
+export function PaymentFormModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  defaultPacienteId,
+  defaultIsPacote = false,
+}: PaymentFormModalProps) {
   const { user } = useAuth();
   const [patients, setPatients] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,20 +31,22 @@ export function PaymentFormModal({ isOpen, onClose, onSuccess, defaultPacienteId
     forma_pagamento: 'pix',
     is_pacote: defaultIsPacote,
     quantidade_sessoes: '10',
-    status: 'pago'
+    status: 'pago',
   });
 
   useEffect(() => {
     if (isOpen) {
-      api.get('/pacientes').then(response => setPatients(response.data));
-      // Sincroniza as defaults sempre que o modal abre
-      setFormData(prev => ({
-        ...prev,
-        paciente_id: defaultPacienteId || prev.paciente_id,
-        is_pacote: defaultIsPacote
-      }));
+      api.get('/pacientes').then((response) => setPatients(response.data));
+      setFormData({
+        paciente_id: defaultPacienteId || '',
+        valor: '',
+        forma_pagamento: 'pix',
+        is_pacote: defaultIsPacote,
+        quantidade_sessoes: '10',
+        status: 'pago',
+      });
     }
-  }, [isOpen]);
+  }, [isOpen, defaultPacienteId, defaultIsPacote]);
 
   if (!isOpen) return null;
 
@@ -49,75 +59,138 @@ export function PaymentFormModal({ isOpen, onClose, onSuccess, defaultPacienteId
         paciente_id: Number(formData.paciente_id),
         valor: Number(formData.valor),
         quantidade_sessoes: formData.is_pacote ? Number(formData.quantidade_sessoes) : 1,
-        clinica_id: user?.clinica_id || 1
+        clinica_id: user?.clinica_id || 1,
       });
-      toast.success(formData.is_pacote ? "Pacote ativado com sucesso!" : "Pagamento registrado!");
+      toast.success(formData.is_pacote ? 'Pacote ativado com sucesso!' : 'Pagamento registrado!');
       onSuccess();
       onClose();
-      setFormData({ paciente_id: defaultPacienteId || '', valor: '', forma_pagamento: 'pix', is_pacote: defaultIsPacote, quantidade_sessoes: '10', status: 'pago' });
     } catch (error: any) {
-      toast.error("Erro ao processar.");
-    } finally { setIsSubmitting(false); }
+      toast.error(error.response?.data?.error || 'Erro ao processar.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in duration-200">
-        <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-          <h2 className="font-bold text-slate-800 flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-emerald-600" /> Novo Lançamento
-          </h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X /></button>
+    <div className="modal-backdrop">
+      <div className="modal-card max-w-xl">
+        <div className="modal-header">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-[18px] bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300">
+              <DollarSign className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-extrabold text-slate-950 dark:text-slate-50">Novo lançamento</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Registre sessão avulsa ou venda de pacote.</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="icon-button h-10 w-10">
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* TIPO DE LANÇAMENTO (AVULSO VS PACOTE) */}
-          <div className="flex bg-slate-100 p-1 rounded-xl">
-            <button 
+        <form onSubmit={handleSubmit} className="space-y-5 p-6">
+          <div className="surface-muted flex gap-2 p-1.5">
+            <button
               type="button"
-              onClick={() => setFormData({...formData, is_pacote: false})}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${!formData.is_pacote ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}
-            >Sessão Avulsa</button>
-            <button 
+              onClick={() => setFormData({ ...formData, is_pacote: false })}
+              className={`flex-1 rounded-2xl px-4 py-3 text-sm font-bold transition-all ${
+                !formData.is_pacote
+                  ? 'bg-sky-500 text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)]'
+                  : 'text-slate-500 hover:bg-white/80 dark:text-slate-400 dark:hover:bg-slate-900/60'
+              }`}
+            >
+              Sessão avulsa
+            </button>
+            <button
               type="button"
-              onClick={() => setFormData({...formData, is_pacote: true})}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${formData.is_pacote ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}
-            >Pacote de Sessões</button>
+              onClick={() => setFormData({ ...formData, is_pacote: true })}
+              className={`flex-1 rounded-2xl px-4 py-3 text-sm font-bold transition-all ${
+                formData.is_pacote
+                  ? 'bg-sky-500 text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)]'
+                  : 'text-slate-500 hover:bg-white/80 dark:text-slate-400 dark:hover:bg-slate-900/60'
+              }`}
+            >
+              Pacote de sessões
+            </button>
           </div>
 
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Paciente</label>
-            <select required value={formData.paciente_id} onChange={e => setFormData({...formData, paciente_id: e.target.value})} className="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500">
+            <label className="form-label">Paciente</label>
+            <select
+              required
+              value={formData.paciente_id}
+              onChange={(e) => setFormData({ ...formData, paciente_id: e.target.value })}
+              className="select-shell"
+            >
               <option value="">Selecione...</option>
-              {patients.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+              {patients.map((patient) => (
+                <option key={patient.id} value={patient.id}>
+                  {patient.nome}
+                </option>
+              ))}
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className={`grid gap-4 ${formData.is_pacote ? 'sm:grid-cols-2' : 'grid-cols-1'}`}>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Valor Total</label>
-              <input required type="number" placeholder="0,00" className="w-full p-2.5 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500" value={formData.valor} onChange={e => setFormData({...formData, valor: e.target.value})} />
+              <label className="form-label">Valor total</label>
+              <input
+                required
+                type="number"
+                placeholder="0,00"
+                className="input-shell"
+                value={formData.valor}
+                onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+              />
             </div>
             {formData.is_pacote && (
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Nº de Sessões</label>
-                <input type="number" className="w-full p-2.5 border border-blue-200 bg-blue-50 text-blue-700 font-bold rounded-xl text-sm outline-none" value={formData.quantidade_sessoes} onChange={e => setFormData({...formData, quantidade_sessoes: e.target.value})} />
+                <label className="form-label">Número de sessões</label>
+                <div className="relative">
+                  <Layers className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="number"
+                    className="input-shell pl-11"
+                    value={formData.quantidade_sessoes}
+                    onChange={(e) => setFormData({ ...formData, quantidade_sessoes: e.target.value })}
+                  />
+                </div>
               </div>
             )}
           </div>
 
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Forma de Pagamento</label>
+            <label className="form-label">Forma de pagamento</label>
             <div className="grid grid-cols-2 gap-2">
-              {['pix', 'dinheiro', 'cartao_credito', 'convenio'].map((m) => (
-                <button key={m} type="button" onClick={() => setFormData({...formData, forma_pagamento: m})} className={`p-2 rounded-lg border text-[10px] font-bold uppercase transition-all ${formData.forma_pagamento === m ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200 text-slate-500'}`}>{m.replace('_', ' ')}</button>
+              {paymentMethods.map((method) => (
+                <button
+                  key={method}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, forma_pagamento: method })}
+                  className={`rounded-2xl border px-3 py-3 text-xs font-bold uppercase tracking-[0.16em] transition-all ${
+                    formData.forma_pagamento === method
+                      ? 'border-sky-400/40 bg-sky-500 text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)]'
+                      : 'border-slate-200 bg-white/60 text-slate-500 hover:border-sky-300 hover:bg-sky-500/5 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400'
+                  }`}
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <CreditCard className="h-3.5 w-3.5" />
+                    {method.replace('_', ' ')}
+                  </span>
+                </button>
               ))}
             </div>
           </div>
 
-          <button type="submit" disabled={isSubmitting} className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold shadow-lg transition-all active:scale-95 disabled:opacity-50">
-            {isSubmitting ? "Processando..." : "Confirmar Recebimento"}
-          </button>
+          <div className="flex gap-3">
+            <button type="button" onClick={onClose} className="secondary-button flex-1">
+              Cancelar
+            </button>
+            <button type="submit" disabled={isSubmitting} className="primary-button flex-1">
+              {isSubmitting ? 'Processando...' : 'Confirmar recebimento'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

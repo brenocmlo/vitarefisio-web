@@ -41,18 +41,18 @@ export function PackagesTab({ pacienteId, pacienteNome }: PackagesTabProps) {
   }, [pacienteId]);
 
   const pacoteAtivo = pacotes.find(
-    (p) => p.status_pagamento === 'pago' && p.sessoes_restantes > 0 && !isPast(new Date(p.data_validade))
+    (pacote) => pacote.status_pagamento === 'pago' && pacote.sessoes_restantes > 0 && !isPast(new Date(pacote.data_validade))
   );
 
   const statusConfig = {
-    pago: { label: 'Pago', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    pendente: { label: 'Pendente', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-    cancelado: { label: 'Cancelado', icon: XCircle, color: 'text-slate-400', bg: 'bg-slate-100' },
+    pago: { label: 'Pago', icon: CheckCircle2, color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-500/12 dark:bg-emerald-400/12' },
+    pendente: { label: 'Pendente', icon: Clock, color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-500/12 dark:bg-amber-400/12' },
+    cancelado: { label: 'Cancelado', icon: XCircle, color: 'text-slate-700 dark:text-slate-200', bg: 'bg-slate-200/70 dark:bg-slate-800' },
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-40 text-slate-400 animate-pulse font-medium">
+      <div className="surface-panel flex min-h-[220px] items-center justify-center text-sm font-semibold text-slate-500 dark:text-slate-400">
         Carregando pacotes...
       </div>
     );
@@ -60,139 +60,118 @@ export function PackagesTab({ pacienteId, pacienteNome }: PackagesTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* CABEÇALHO */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-bold text-slate-700 flex items-center gap-2">
-          <Layers className="w-5 h-5 text-blue-600" />
-          Pacotes de Sessões
-        </h3>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-sm text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Novo Pacote
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="eyebrow mb-2">Pacotes</p>
+          <h3 className="font-display text-2xl font-extrabold text-slate-950 dark:text-slate-50">
+            Sessões contratadas {pacienteNome ? `de ${pacienteNome}` : ''}
+          </h3>
+        </div>
+        <button onClick={() => setIsModalOpen(true)} className="primary-button">
+          <Plus className="h-4 w-4" />
+          Novo pacote
         </button>
       </div>
 
-      {/* CARD DO PACOTE ATIVO */}
       {pacoteAtivo ? (
-        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg shadow-blue-200">
-          <div className="flex justify-between items-start mb-4">
+        <div className="hero-panel p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Zap className="w-4 h-4 text-blue-200" />
-                <span className="text-blue-200 text-xs font-bold uppercase tracking-widest">Pacote Ativo</span>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-sky-50">
+                <Zap className="h-3.5 w-3.5" />
+                Pacote ativo
               </div>
-              <p className="text-3xl font-black">
+              <p className="font-display text-4xl font-extrabold">
                 {pacoteAtivo.sessoes_restantes}
-                <span className="text-blue-300 text-xl font-medium"> / {pacoteAtivo.sessoes_total} sessões</span>
+                <span className="ml-2 text-xl font-semibold text-sky-100/85">de {pacoteAtivo.sessoes_total} sessões restantes</span>
               </p>
             </div>
-            <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
-              {Math.round((pacoteAtivo.sessoes_restantes / pacoteAtivo.sessoes_total) * 100)}% restante
-            </span>
-          </div>
 
-          {/* BARRA DE PROGRESSO */}
-          <div className="w-full bg-white/20 rounded-full h-2.5 mb-4">
-            <div
-              className="bg-white rounded-full h-2.5 transition-all duration-500"
-              style={{ width: `${(pacoteAtivo.sessoes_restantes / pacoteAtivo.sessoes_total) * 100}%` }}
-            />
-          </div>
-
-          <div className="flex items-center gap-4 text-blue-200 text-xs font-medium">
-            <span className="flex items-center gap-1">
-              <CalendarDays className="w-3.5 h-3.5" />
-              Comprado em {format(new Date(pacoteAtivo.data_compra), "dd/MM/yyyy", { locale: ptBR })}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
-              Válido até {format(new Date(pacoteAtivo.data_validade), "dd/MM/yyyy", { locale: ptBR })}
-            </span>
+            <div className="space-y-3">
+              <div className="h-3 w-full overflow-hidden rounded-full bg-white/20 lg:w-80">
+                <div
+                  className="h-full rounded-full bg-white transition-all duration-500"
+                  style={{ width: `${(pacoteAtivo.sessoes_restantes / pacoteAtivo.sessoes_total) * 100}%` }}
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-sky-100/85">
+                <span className="flex items-center gap-1">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  Comprado em {format(new Date(pacoteAtivo.data_compra), 'dd/MM/yyyy', { locale: ptBR })}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  Válido até {format(new Date(pacoteAtivo.data_validade), 'dd/MM/yyyy', { locale: ptBR })}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="bg-amber-50 border border-amber-100 rounded-xl p-5 flex items-center gap-4">
-          <div className="p-3 bg-amber-100 rounded-xl">
-            <Layers className="w-5 h-5 text-amber-600" />
+        <div className="surface-card flex items-center gap-4 p-5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-[20px] bg-amber-500/12 text-amber-700 dark:bg-amber-400/12 dark:text-amber-300">
+            <Layers className="h-5 w-5" />
           </div>
           <div>
-            <p className="font-bold text-amber-800 text-sm">Nenhum pacote ativo</p>
-            <p className="text-amber-600 text-xs mt-0.5">
-              A próxima sessão realizada gerará uma cobrança avulsa automaticamente.
+            <p className="font-semibold text-slate-900 dark:text-slate-100">Nenhum pacote ativo</p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              A próxima sessão realizada será tratada como cobrança avulsa.
             </p>
           </div>
         </div>
       )}
 
-      {/* HISTÓRICO DE PACOTES */}
       <div>
-        <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-          Histórico de Pacotes
-        </h4>
-
+        <p className="eyebrow mb-3">Histórico</p>
         {pacotes.length === 0 ? (
-          <div className="bg-white border-2 border-dashed border-slate-200 rounded-xl p-10 text-center text-slate-400 flex flex-col items-center gap-3">
-            <Layers className="w-10 h-10 text-slate-200" />
-            <p className="font-medium text-sm">Nenhum pacote registado para este paciente.</p>
-            <button onClick={() => setIsModalOpen(true)} className="text-blue-600 font-bold text-sm hover:underline">
+          <div className="surface-panel flex min-h-[220px] flex-col items-center justify-center px-6 text-center">
+            <Layers className="mb-4 h-10 w-10 text-slate-300 dark:text-slate-600" />
+            <p className="font-semibold text-slate-800 dark:text-slate-100">Nenhum pacote registrado.</p>
+            <button onClick={() => setIsModalOpen(true)} className="ghost-button mt-4 text-sky-600 dark:text-sky-300">
               Ativar primeiro pacote
             </button>
           </div>
         ) : (
           <div className="space-y-3">
             {pacotes.map((pacote) => {
-              const cfg = statusConfig[pacote.status_pagamento];
-              const StatusIcon = cfg.icon;
+              const config = statusConfig[pacote.status_pagamento];
+              const StatusIcon = config.icon;
               const expirado = isPast(new Date(pacote.data_validade)) && pacote.status_pagamento === 'pago';
               const sessoesConcluidas = pacote.sessoes_total - pacote.sessoes_restantes;
 
               return (
-                <div
-                  key={pacote.id}
-                  className={`bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-4 ${
-                    expirado ? 'opacity-60' : ''
-                  }`}
-                >
-                  {/* Ícone de status */}
-                  <div className={`p-2 rounded-lg shrink-0 ${cfg.bg}`}>
-                    <StatusIcon className={`w-4 h-4 ${cfg.color}`} />
-                  </div>
-
-                  {/* Informações */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-slate-800 text-sm">
-                        {pacote.sessoes_total} sessões
-                      </span>
-                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.color}`}>
-                        {expirado ? 'Expirado' : cfg.label}
-                      </span>
+                <div key={pacote.id} className={`surface-panel p-5 ${expirado ? 'opacity-70' : ''}`}>
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-[18px] ${config.bg} ${config.color}`}>
+                        <StatusIcon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-bold text-slate-900 dark:text-slate-100">{pacote.sessoes_total} sessões</p>
+                          <span className={`status-chip ${config.bg} ${config.color}`}>{expirado ? 'Expirado' : config.label}</span>
+                        </div>
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                          {format(new Date(pacote.data_compra), 'dd/MM/yyyy', { locale: ptBR })} até{' '}
+                          {format(new Date(pacote.data_validade), 'dd/MM/yyyy', { locale: ptBR })}
+                        </p>
+                      </div>
                     </div>
-                    {/* Mini barra de progresso */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-slate-100 rounded-full h-1.5">
+
+                    <div className="w-full lg:w-72">
+                      <div className="mb-2 flex justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        <span>Uso do pacote</span>
+                        <span>
+                          {sessoesConcluidas}/{pacote.sessoes_total}
+                        </span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800">
                         <div
-                          className="bg-blue-500 rounded-full h-1.5 transition-all"
+                          className="h-full rounded-full bg-sky-500"
                           style={{ width: `${(sessoesConcluidas / pacote.sessoes_total) * 100}%` }}
                         />
                       </div>
-                      <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
-                        {sessoesConcluidas}/{pacote.sessoes_total} usadas
-                      </span>
                     </div>
-                  </div>
-
-                  {/* Datas */}
-                  <div className="text-right shrink-0 hidden sm:block">
-                    <p className="text-xs text-slate-500">
-                      {format(new Date(pacote.data_compra), "dd/MM/yyyy", { locale: ptBR })}
-                    </p>
-                    <p className="text-[10px] text-slate-400">
-                      até {format(new Date(pacote.data_validade), "dd/MM/yyyy", { locale: ptBR })}
-                    </p>
                   </div>
                 </div>
               );
@@ -201,7 +180,6 @@ export function PackagesTab({ pacienteId, pacienteNome }: PackagesTabProps) {
         )}
       </div>
 
-      {/* MODAL DE NOVO PACOTE */}
       <PaymentFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -1,93 +1,271 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  FileText, 
-  DollarSign, 
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  FileText,
+  DollarSign,
   LogOut,
-  User as UserIcon
+  User as UserIcon,
+  Sun,
+  Moon,
+  Laptop,
+  PanelLeft,
+  X,
+  Sparkles,
+  ChevronRight,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '../contexts/ThemeContext';
+
+const menuItems = [
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', description: 'Resumo da operação diária' },
+  { label: 'Pacientes', icon: Users, path: '/pacientes', description: 'Cadastros e histórico clínico' },
+  { label: 'Agenda', icon: Calendar, path: '/agenda', description: 'Consultas e disponibilidade' },
+  { label: 'Prontuários', icon: FileText, path: '/prontuarios', description: 'Registro e evolução clínica' },
+  { label: 'Financeiro', icon: DollarSign, path: '/financeiro', description: 'Caixa, pacotes e repasses' },
+];
+
+const pageMeta: Record<string, { title: string; description: string }> = {
+  '/dashboard': {
+    title: 'Painel da clínica',
+    description: 'Tudo o que importa hoje em uma visão clara e acionável.',
+  },
+  '/pacientes': {
+    title: 'Base de pacientes',
+    description: 'Acompanhe cadastros, convênios e acesso rápido ao prontuário.',
+  },
+  '/agenda': {
+    title: 'Agenda terapêutica',
+    description: 'Organize horários, status de atendimento e encaixes do dia.',
+  },
+  '/financeiro': {
+    title: 'Fluxo financeiro',
+    description: 'Monitore recebimentos, pendências e lançamentos da clínica.',
+  },
+};
+
+const themeOptions = [
+  { value: 'light', label: 'Claro', icon: Sun },
+  { value: 'dark', label: 'Escuro', icon: Moon },
+  { value: 'system', label: 'Sistema', icon: Laptop },
+] as const;
 
 export function Layout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const location = useLocation();
+  const { theme, resolvedTheme, setTheme } = useTheme();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const menuItems = [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { label: 'Pacientes', icon: Users, path: '/pacientes' },
-    { label: 'Agenda', icon: Calendar, path: '/agenda' },
-    { label: 'Prontuários', icon: FileText, path: '/prontuarios' },
-    { label: 'Financeiro', icon: DollarSign, path: '/financeiro' },
-  ];
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
+
+  const currentPage = useMemo(() => {
+    if (location.pathname.startsWith('/pacientes/') && location.pathname.includes('/prontuario')) {
+      return {
+        title: 'Prontuário eletrônico',
+        description: 'Anamnese, evoluções, anexos e pacotes em um só lugar.',
+      };
+    }
+
+    return pageMeta[location.pathname] ?? {
+      title: 'VitareFisio',
+      description: 'Gestão clínica com uma experiência mais clara e agradável.',
+    };
+  }, [location.pathname]);
+
+  const initials = user?.nome
+    ?.split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col">
-        <div className="p-6">
-          <h2 className="text-xl font-bold text-blue-600 flex items-center gap-2">
-            VitareFisio
-          </h2>
-        </div>
+    <div className="relative min-h-screen overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.18),transparent_58%)] dark:bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.16),transparent_58%)]" />
+      <div className="pointer-events-none absolute -left-24 top-24 h-72 w-72 rounded-full bg-sky-400/10 blur-3xl dark:bg-sky-500/10" />
+      <div className="pointer-events-none absolute -right-20 top-40 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl dark:bg-emerald-400/10" />
 
-        <nav className="flex-1 px-4 space-y-1">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  isActive 
-                    ? 'bg-blue-50 text-blue-600' 
-                    : 'text-slate-600 hover:bg-slate-50'
-                }`}
+      {mobileNavOpen && (
+        <button
+          type="button"
+          aria-label="Fechar menu"
+          className="fixed inset-0 z-30 bg-slate-950/45 backdrop-blur-sm lg:hidden"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
+
+      <div className="relative flex min-h-screen">
+        <aside
+          className={`fixed inset-y-0 left-0 z-40 w-[86vw] max-w-[320px] transform p-3 sm:p-4 transition-transform duration-300 lg:static lg:w-[300px] lg:max-w-none lg:translate-x-0 ${
+            mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="surface-panel flex h-full flex-col p-4 sm:p-5">
+            <div className="mb-6 flex items-start justify-between gap-3">
+              <div>
+                <div className="eyebrow mb-2">VitareFisio</div>
+                <h2 className="font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
+                  Gestão clínica
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  Mais foco na operação, menos atrito no dia a dia.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="icon-button lg:hidden"
+                onClick={() => setMobileNavOpen(false)}
+                aria-label="Fechar navegação"
               >
-                <item.icon className="w-5 h-5" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-slate-100">
-          <button 
-            onClick={signOut}
-            className="flex items-center gap-3 px-4 py-3 w-full text-left text-sm font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            <LogOut className="w-5 h-5" />
-            Sair do Sistema
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header Superior */}
-        <header className="h-16 bg-white border-bottom border-slate-200 flex items-center justify-between px-8 shadow-sm z-10">
-          <div className="flex items-center gap-4 text-slate-500">
-             {/* Aqui pode entrar uma barra de pesquisa ou breadcrumbs */}
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-sm font-semibold text-slate-800 leading-none">{user?.nome}</p>
-              <span className="text-xs text-slate-500">Fisioterapeuta</span>
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 border border-blue-200">
-              <UserIcon className="w-6 h-6" />
+
+            <div className="surface-muted mb-6 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Tema sincronizado</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Aparência atual: {resolvedTheme === 'dark' ? 'escura' : 'clara'}.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <nav className="flex-1 space-y-2">
+              {menuItems.map((item) => {
+                const isActive =
+                  item.path === '/prontuarios'
+                    ? location.pathname.includes('/prontuario')
+                    : location.pathname === item.path;
+
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path === '/prontuarios' ? '/pacientes' : item.path}
+                    className={`group flex items-center justify-between rounded-[22px] border px-4 py-3.5 transition-all duration-200 ${
+                      isActive
+                        ? 'border-sky-300/50 bg-sky-500/10 text-sky-700 shadow-[0_18px_40px_rgba(14,165,233,0.14)] dark:border-sky-400/25 dark:bg-sky-400/10 dark:text-sky-300'
+                        : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white/50 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-900/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
+                          isActive
+                            ? 'bg-white/70 text-sky-600 dark:bg-slate-900/70 dark:text-sky-300'
+                            : 'bg-slate-100/80 text-slate-500 dark:bg-slate-800/70 dark:text-slate-400'
+                        }`}
+                      >
+                        <item.icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold">{item.label}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{item.description}</p>
+                      </div>
+                    </div>
+                    <ChevronRight
+                      className={`h-4 w-4 transition-transform duration-200 ${
+                        isActive ? 'translate-x-0 text-sky-500' : 'text-slate-300 group-hover:translate-x-0.5'
+                      }`}
+                    />
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="surface-muted mt-6 space-y-4 p-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Aparência</p>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {themeOptions.map((option) => {
+                    const Icon = option.icon;
+                    const active = theme === option.value;
+
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setTheme(option.value)}
+                        className={`rounded-2xl px-3 py-2.5 text-xs font-bold transition-all ${
+                          active
+                            ? 'bg-sky-500 text-white shadow-[0_16px_32px_rgba(14,165,233,0.22)]'
+                            : 'bg-white/70 text-slate-500 hover:bg-white dark:bg-slate-900/60 dark:text-slate-400 dark:hover:bg-slate-900'
+                        }`}
+                      >
+                        <span className="mb-1 flex justify-center">
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <button
+                onClick={signOut}
+                className="secondary-button w-full justify-center border-red-200/60 text-red-600 hover:bg-red-50 dark:border-red-500/20 dark:text-red-300 dark:hover:bg-red-500/10"
+              >
+                <LogOut className="h-4 w-4" />
+                Sair do sistema
+              </button>
             </div>
           </div>
-        </header>
+        </aside>
 
-        {/* Conteúdo da Página */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
-          {children}
-        </div>
-      </main>
+        <main className="flex min-w-0 flex-1 flex-col px-3 pb-5 pt-3 sm:px-5 sm:pb-6 sm:pt-4 lg:px-6">
+          <header className="surface-panel sticky top-3 z-20 mb-5 overflow-hidden px-4 py-4 sm:top-4 sm:mb-6 sm:px-6">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/50 to-transparent" />
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-start gap-3">
+                <button
+                  type="button"
+                  className="icon-button lg:hidden"
+                  onClick={() => setMobileNavOpen(true)}
+                  aria-label="Abrir navegação"
+                >
+                  <PanelLeft className="h-5 w-5" />
+                </button>
+                <div className="min-w-0">
+                  <p className="eyebrow mb-2">Painel operacional</p>
+                  <h1 className="font-display text-xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50 sm:text-2xl">
+                    {currentPage.title}
+                  </h1>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400 sm:text-[15px]">
+                    {currentPage.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                <div className="surface-muted flex w-full items-center gap-3 px-3 py-2.5 sm:w-auto">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300">
+                    {initials ? (
+                      <span className="text-sm font-extrabold">{initials}</span>
+                    ) : (
+                      <UserIcon className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{user?.nome}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Fisioterapeuta em atendimento</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <div className="mx-auto w-full max-w-7xl flex-1">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }
