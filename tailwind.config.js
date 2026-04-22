@@ -17,3 +17,14 @@ export default {
   },
   plugins: [],
 }
+export default {
+  darkMode: 'class', // Isso é a chave principal! Adicione isso
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
