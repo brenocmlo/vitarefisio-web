@@ -1,16 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
-import { 
-  Users, 
-  Calendar as CalendarIcon, 
-  TrendingUp, 
+import {
+  Users,
+  Calendar as CalendarIcon,
+  TrendingUp,
   UserX,
   Clock,
   ExternalLink,
   UserPlus,
   CalendarPlus,
-  DollarSign
+  DollarSign,
+  ArrowRight,
+  Activity,
+  Sparkles,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -31,6 +34,11 @@ interface Metrics {
   };
 }
 
+const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+});
+
 export function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -42,91 +50,153 @@ export function Dashboard() {
   useEffect(() => {
     async function loadDashboardData() {
       try {
-        // O clinica_id agora vem corretamente do perfil do usuário logado
         const response = await api.get(`/dashboard?clinica_id=${user?.clinica_id}`);
         setMetrics(response.data);
       } catch (error) {
-        console.error("Erro ao carregar dashboard", error);
+        console.error('Erro ao carregar dashboard', error);
       } finally {
         setLoading(false);
       }
     }
 
     loadDashboardData();
-  }, []);
+  }, [user?.clinica_id]);
+
+  const stats = useMemo(
+    () => [
+      {
+        title: 'Pacientes ativos',
+        value: metrics?.mes.pacientes_ativos || 0,
+        icon: Users,
+        accent: 'bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300',
+      },
+      {
+        title: 'Agendamentos hoje',
+        value: metrics?.hoje.total_agendamentos || 0,
+        icon: CalendarIcon,
+        accent: 'bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300',
+      },
+      {
+        title: 'Faturamento do mês',
+        value: currencyFormatter.format(metrics?.mes.faturamento_estimado || 0),
+        icon: TrendingUp,
+        accent: 'bg-violet-500/12 text-violet-700 dark:bg-violet-400/12 dark:text-violet-300',
+      },
+      {
+        title: 'Taxa de faltas',
+        value: `${metrics?.mes.taxa_de_faltas_percentual || 0}%`,
+        icon: UserX,
+        accent: 'bg-amber-500/12 text-amber-700 dark:bg-amber-400/12 dark:text-amber-300',
+      },
+    ],
+    [metrics]
+  );
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full">Carregando métricas...</div>;
+    return (
+      <div className="surface-panel flex min-h-[260px] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-sky-200 border-t-sky-600 dark:border-slate-700 dark:border-t-sky-400" />
+          <p className="font-semibold text-slate-700 dark:text-slate-200">Carregando métricas da clínica...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-8">
-      {/* Cabeçalho de Boas-vindas */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Olá, Dr. {user?.nome}</h1>
-        <p className="text-slate-500 text-sm">Aqui está o resumo da sua clínica para hoje, {format(new Date(), "dd 'de' MMMM", { locale: ptBR })}.</p>
-      </div>
-
-      {/* Cards de Métricas Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card 
-          title="Pacientes Ativos" 
-          value={metrics?.mes.pacientes_ativos || 0} 
-          icon={Users} 
-          color="text-blue-600" 
-          bg="bg-blue-50" 
-        />
-        <Card 
-          title="Agendamentos Hoje" 
-          value={metrics?.hoje.total_agendamentos || 0} 
-          icon={CalendarIcon} 
-          color="text-emerald-600" 
-          bg="bg-emerald-50" 
-        />
-        <Card 
-          title="Faturamento (Mês)" 
-          value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(metrics?.mes.faturamento_estimado || 0)} 
-          icon={TrendingUp} 
-          color="text-violet-600" 
-          bg="bg-violet-50" 
-        />
-        <Card 
-          title="Taxa de Faltas" 
-          value={`${metrics?.mes.taxa_de_faltas_percentual || 0}%`} 
-          icon={UserX} 
-          color="text-orange-600" 
-          bg="bg-orange-50" 
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Lista de Próximos Atendimentos */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="p-6 border-b border-slate-50 flex justify-between items-center">
-            <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-blue-500" />
-              Próximos Atendimentos
-            </h3>
-            <button className="text-sm text-blue-600 hover:underline">Ver agenda completa</button>
+    <div className="space-y-6">
+      <section className="hero-panel relative overflow-hidden p-6 sm:p-8">
+        <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+        <div className="grid gap-8 xl:grid-cols-[1.3fr_0.7fr]">
+          <div>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-sky-50">
+              <Sparkles className="h-3.5 w-3.5" />
+              {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+            </div>
+            <h1 className="font-display max-w-2xl text-3xl font-extrabold leading-tight sm:text-4xl">
+              Olá, {user?.nome}. Seu panorama clínico está pronto para hoje.
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-sky-50/85 sm:text-base">
+              Veja rapidamente o ritmo da agenda, o comportamento financeiro e os próximos atendimentos para manter o dia fluindo com mais clareza.
+            </p>
           </div>
-          
-          <div className="divide-y divide-slate-50">
+
+          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+            <button onClick={() => setIsPatientModalOpen(true)} className="rounded-[24px] border border-white/15 bg-white/10 px-5 py-4 text-left transition-colors hover:bg-white/15">
+              <UserPlus className="mb-3 h-5 w-5 text-sky-100" />
+              <p className="font-semibold">Novo paciente</p>
+              <p className="mt-1 text-sm text-sky-50/80">Cadastre e comece o acompanhamento.</p>
+            </button>
+            <button onClick={() => setIsAppointmentModalOpen(true)} className="rounded-[24px] border border-white/15 bg-white/10 px-5 py-4 text-left transition-colors hover:bg-white/15">
+              <CalendarPlus className="mb-3 h-5 w-5 text-sky-100" />
+              <p className="font-semibold">Novo agendamento</p>
+              <p className="mt-1 text-sm text-sky-50/80">Abra um horário em poucos cliques.</p>
+            </button>
+            <button onClick={() => navigate('/financeiro')} className="rounded-[24px] border border-white/15 bg-white/10 px-5 py-4 text-left transition-colors hover:bg-white/15">
+              <DollarSign className="mb-3 h-5 w-5 text-sky-100" />
+              <p className="font-semibold">Lançar pagamento</p>
+              <p className="mt-1 text-sm text-sky-50/80">Registre sessões avulsas ou pacotes.</p>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {stats.map((item) => (
+          <MetricCard key={item.title} {...item} />
+        ))}
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="surface-panel overflow-hidden">
+          <div className="flex items-center justify-between border-b border-slate-200/70 px-6 py-5 dark:border-slate-700/80">
+            <div>
+              <p className="eyebrow mb-2">Atendimentos</p>
+              <h3 className="font-display text-xl font-extrabold text-slate-950 dark:text-slate-50">Próximos do dia</h3>
+            </div>
+            <button onClick={() => navigate('/agenda')} className="ghost-button px-0 py-0 text-sky-600 dark:text-sky-300">
+              Ver agenda completa
+            </button>
+          </div>
+
+          <div className="divide-y divide-slate-200/70 dark:divide-slate-800">
             {metrics?.hoje.proximos_pacientes.length === 0 ? (
-              <div className="p-10 text-center text-slate-400">Nenhum agendamento para o resto do dia.</div>
+              <div className="flex min-h-[220px] flex-col items-center justify-center px-6 text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-500/10 text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
+                  <Clock className="h-7 w-7" />
+                </div>
+                <p className="font-semibold text-slate-800 dark:text-slate-100">Nenhum agendamento para o restante do dia.</p>
+                <p className="mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  Aproveite para organizar prontuários pendentes ou abrir novos horários para encaixe.
+                </p>
+              </div>
             ) : (
               metrics?.hoje.proximos_pacientes.map((item: any) => (
-                <div key={item.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between">
+                <div
+                  key={item.id}
+                  className="flex flex-col gap-4 px-6 py-5 transition-colors hover:bg-sky-500/[0.04] sm:flex-row sm:items-center sm:justify-between"
+                >
                   <div className="flex items-center gap-4">
-                    <div className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded">
-                      {format(new Date(item.data_hora), 'HH:mm')}
+                    <div className="flex h-14 w-14 flex-col items-center justify-center rounded-[22px] bg-sky-500/10 text-sky-700 dark:bg-sky-400/10 dark:text-sky-300">
+                      <span className="text-[11px] font-bold uppercase tracking-[0.18em]">Hora</span>
+                      <span className="text-sm font-extrabold">{format(new Date(item.data_hora), 'HH:mm')}</span>
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-800">Paciente #{item.paciente_id}</p>
-                      <p className="text-xs text-slate-500 uppercase">{item.status}</p>
+                      <p className="text-base font-bold text-slate-900 dark:text-slate-100">
+                        {item.paciente?.nome || `Paciente #${item.paciente_id}`}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        Status atual: <span className="font-semibold capitalize text-slate-700 dark:text-slate-200">{item.status}</span>
+                      </p>
                     </div>
                   </div>
-                  <button className="p-2 hover:bg-white rounded-full border border-transparent hover:border-slate-200 transition-all">
-                    <ExternalLink className="w-4 h-4 text-slate-400" />
+
+                  <button
+                    onClick={() => navigate(`/pacientes/${item.paciente_id}/prontuario`)}
+                    className="secondary-button justify-center sm:justify-start"
+                  >
+                    Abrir prontuário
+                    <ExternalLink className="h-4 w-4" />
                   </button>
                 </div>
               ))
@@ -134,65 +204,101 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Card Auxiliar / Atalhos Rápidos */}
-        <div className="space-y-6">
-          <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-lg shadow-blue-200">
-            <h3 className="font-bold mb-2">Atalhos Rápidos</h3>
-            <p className="text-blue-100 text-sm mb-6">Ações frequentes para agilizar o seu dia a dia.</p>
-            <div className="grid grid-cols-1 gap-3">
-              <button 
-                onClick={() => setIsPatientModalOpen(true)}
-                className="bg-white/10 hover:bg-white/20 p-3 rounded-lg text-sm font-medium transition-all text-left flex items-center gap-3"
-              >
-                <UserPlus className="w-4 h-4" />
-                Novo Paciente
-              </button>
-              <button 
-                onClick={() => setIsAppointmentModalOpen(true)}
-                className="bg-white/10 hover:bg-white/20 p-3 rounded-lg text-sm font-medium transition-all text-left flex items-center gap-3"
-              >
-                <CalendarPlus className="w-4 h-4" />
-                Novo Agendamento
-              </button>
-              <button 
-                onClick={() => navigate('/financeiro')}
-                className="bg-white/10 hover:bg-white/20 p-3 rounded-lg text-sm font-medium transition-all text-left flex items-center gap-3"
-              >
-                <DollarSign className="w-4 h-4" />
-                Lançar Pagamento
-              </button>
+        <div className="grid gap-6">
+          <div className="surface-panel p-6">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-[22px] bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300">
+                <Activity className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="eyebrow mb-1">Ritmo do mês</p>
+                <h3 className="font-display text-xl font-extrabold text-slate-950 dark:text-slate-50">Operação em movimento</h3>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <InsightRow
+                label="Sessões realizadas"
+                value={String(metrics?.mes.sessoes_realizadas || 0)}
+                description="Evoluções concluídas no mês corrente."
+              />
+              <InsightRow
+                label="Receita estimada"
+                value={currencyFormatter.format(metrics?.mes.faturamento_estimado || 0)}
+                description="Baseada nos atendimentos já registrados."
+              />
+              <InsightRow
+                label="Engajamento da agenda"
+                value={`${metrics?.hoje.total_agendamentos || 0} slots`}
+                description="Sessões já distribuídas ao longo do dia."
+              />
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Modais dos Atalhos Rápidos */}
-      <PatientFormModal 
-        isOpen={isPatientModalOpen} 
-        onClose={() => setIsPatientModalOpen(false)} 
-        onSuccess={() => { setIsPatientModalOpen(false); }} 
+          <div className="surface-card p-6">
+            <p className="eyebrow mb-3">Próximo passo</p>
+            <h3 className="font-display text-xl font-extrabold text-slate-950 dark:text-slate-50">
+              Quer acelerar o fluxo de trabalho?
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
+              Mantenha o prontuário atualizado logo após cada consulta para reduzir retrabalho e ter indicadores mais confiáveis.
+            </p>
+            <button onClick={() => navigate('/pacientes')} className="primary-button mt-5">
+              Ver pacientes
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <PatientFormModal
+        isOpen={isPatientModalOpen}
+        onClose={() => setIsPatientModalOpen(false)}
+        onSuccess={() => {
+          setIsPatientModalOpen(false);
+        }}
       />
-      <AppointmentFormModal 
-        isOpen={isAppointmentModalOpen} 
-        onClose={() => setIsAppointmentModalOpen(false)} 
-        onSuccess={() => { setIsAppointmentModalOpen(false); }} 
-        selectedDate={new Date()} 
+      <AppointmentFormModal
+        isOpen={isAppointmentModalOpen}
+        onClose={() => setIsAppointmentModalOpen(false)}
+        onSuccess={() => {
+          setIsAppointmentModalOpen(false);
+        }}
+        selectedDate={new Date()}
       />
     </div>
   );
 }
 
-// Sub-componente interno para os Cards
-function Card({ title, value, icon: Icon, color, bg }: any) {
+function MetricCard({ title, value, icon: Icon, accent }: any) {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-2 rounded-lg ${bg}`}>
-          <Icon className={`w-6 h-6 ${color}`} />
+    <div className="stat-card">
+      <div className="absolute right-4 top-4 h-24 w-24 rounded-full bg-[var(--hero-glow)] blur-2xl" />
+      <div className="relative flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{title}</p>
+          <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
+            {value}
+          </h2>
+        </div>
+        <div className={`flex h-12 w-12 items-center justify-center rounded-[20px] ${accent}`}>
+          <Icon className="h-5 w-5" />
         </div>
       </div>
-      <p className="text-slate-500 text-sm font-medium">{title}</p>
-      <h2 className="text-2xl font-bold text-slate-800">{value}</h2>
+    </div>
+  );
+}
+
+function InsightRow({ label, value, description }: { label: string; value: string; description: string }) {
+  return (
+    <div className="surface-muted p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{label}</p>
+          <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">{description}</p>
+        </div>
+        <span className="text-sm font-extrabold text-sky-700 dark:text-sky-300">{value}</span>
+      </div>
     </div>
   );
 }

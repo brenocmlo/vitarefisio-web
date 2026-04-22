@@ -1,29 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  AlertCircle, 
+import {
+  DollarSign,
+  TrendingUp,
+  AlertCircle,
   Calendar,
   Clock,
   Plus,
   ArrowUpRight,
   CreditCard,
-  Wallet
+  Wallet,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
-// IMPORTAÇÃO DO MODAL
-import { PaymentFormModal } from '../components/PaymentFormModal'; 
+import { PaymentFormModal } from '../components/PaymentFormModal';
 
 export function Financeiro() {
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar o Modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [stats, setStats] = useState({
     totalRecebido: 0,
     aReceber: 0,
-    faturamentoMes: 0
+    faturamentoMes: 0,
   });
   const [transacoes, setTransacoes] = useState<any[]>([]);
 
@@ -31,7 +30,7 @@ export function Financeiro() {
     try {
       setLoading(true);
       const response = await api.get('/pagamentos');
-      
+
       if (response.data.stats) {
         setStats(response.data.stats);
         setTransacoes(response.data.recentes);
@@ -39,7 +38,7 @@ export function Financeiro() {
         setTransacoes(response.data);
       }
     } catch (error) {
-      toast.error("Erro ao carregar dados financeiros");
+      toast.error('Erro ao carregar dados financeiros');
       console.error(error);
     } finally {
       setLoading(false);
@@ -51,143 +50,147 @@ export function Financeiro() {
   }, []);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full text-slate-400 font-medium">Carregando balanço financeiro...</div>;
+    return (
+      <div className="surface-panel flex min-h-[260px] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-600 dark:border-slate-700 dark:border-t-emerald-400" />
+          <p className="font-semibold text-slate-700 dark:text-slate-200">Carregando balanço financeiro...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Fluxo de Caixa</h1>
-          <p className="text-sm text-slate-500 font-medium">Controle de entradas e previsões da clínica</p>
-        </div>
-        <div className="flex gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 shadow-sm">
-            <Calendar className="w-4 h-4 text-blue-500" />
-            <span className="capitalize">{format(new Date(), 'MMMM yyyy', { locale: ptBR })}</span>
+    <div className="space-y-6">
+      <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="hero-panel p-6 sm:p-8">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-sky-50">
+            <Wallet className="h-3.5 w-3.5" />
+            Visão financeira
           </div>
-          
-          {/* BOTÃO AGORA FUNCIONAL */}
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all active:scale-95"
-          >
-            <Plus className="w-4 h-4" /> Novo Lançamento
+          <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+            Caixa da clínica com leitura mais clara e ação mais rápida.
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-sky-50/85 sm:text-base">
+            Monitore entradas, pendências e faturamento total em um painel com contraste mais confortável e foco no que pede decisão.
+          </p>
+        </div>
+
+        <div className="surface-card flex flex-col justify-between p-6">
+          <div>
+            <p className="eyebrow mb-3">Período atual</p>
+            <h2 className="font-display text-2xl font-extrabold text-slate-950 dark:text-slate-50 capitalize">
+              {format(new Date(), 'MMMM yyyy', { locale: ptBR })}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
+              Use os lançamentos recentes para acompanhar recebimentos confirmados e cobranças ainda pendentes.
+            </p>
+          </div>
+          <button onClick={() => setIsModalOpen(true)} className="primary-button mt-5">
+            <Plus className="h-4 w-4" />
+            Novo lançamento
           </button>
         </div>
-      </div>
+      </section>
 
-      {/* CARDS DE RESUMO (DASHBOARD) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <TrendingUp className="w-16 h-16 text-emerald-600" />
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <FinancialCard
+          icon={TrendingUp}
+          label="Total recebido"
+          value={`R$ ${stats.totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+          footer="Saldo consolidado"
+          footerIcon={ArrowUpRight}
+          accent="bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300"
+        />
+        <FinancialCard
+          icon={AlertCircle}
+          label="A receber"
+          value={`R$ ${stats.aReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+          footer="Aguardando pagamento"
+          footerIcon={Clock}
+          accent="bg-amber-500/12 text-amber-700 dark:bg-amber-400/12 dark:text-amber-300"
+        />
+        <FinancialCard
+          icon={DollarSign}
+          label="Faturamento total"
+          value={`R$ ${stats.faturamentoMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+          footer="Acumulado no mês"
+          footerIcon={Calendar}
+          accent="bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300"
+        />
+      </section>
+
+      <section className="table-shell">
+        <div className="flex items-center justify-between border-b border-slate-200/70 px-6 py-5 dark:border-slate-800">
+          <div>
+            <p className="eyebrow mb-2">Movimentações</p>
+            <h3 className="font-display text-xl font-extrabold text-slate-950 dark:text-slate-50">Últimos lançamentos</h3>
           </div>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Recebido</p>
-          <h3 className="text-3xl font-black text-slate-800">
-            R$ {stats.totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </h3>
-          <div className="mt-4 flex items-center gap-1.5 text-emerald-600 text-[10px] font-bold bg-emerald-50 w-fit px-2 py-0.5 rounded-full">
-            <ArrowUpRight className="w-3 h-3" /> SALDO EM CONTA
-          </div>
+          <button className="ghost-button px-0 py-0 text-sky-600 dark:text-sky-300">Exportar relatório</button>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <AlertCircle className="w-16 h-16 text-amber-600" />
-          </div>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">A Receber / Pendente</p>
-          <h3 className="text-3xl font-black text-slate-800">
-            R$ {stats.aReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </h3>
-          <div className="mt-4 flex items-center gap-1.5 text-amber-600 text-[10px] font-bold bg-amber-50 w-fit px-2 py-0.5 rounded-full">
-            <Clock className="w-3 h-3" /> AGUARDANDO PAGAMENTO
-          </div>
-        </div>
-
-        <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-20">
-            <DollarSign className="w-16 h-16 text-white" />
-          </div>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Faturamento Total</p>
-          <h3 className="text-3xl font-black text-white">
-            R$ {stats.faturamentoMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </h3>
-          <p className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Total bruto acumulado no mês</p>
-        </div>
-      </div>
-
-      {/* TABELA DE MOVIMENTAÇÕES RECENTES */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-          <h3 className="font-bold text-slate-800 flex items-center gap-2">
-            <Wallet className="w-4 h-4 text-blue-600" />
-            Últimas Movimentações
-          </h3>
-          <button className="text-blue-600 text-[10px] font-black uppercase tracking-widest hover:text-blue-800 transition-colors">
-            Exportar Relatório
-          </button>
-        </div>
-        
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-white text-[10px] uppercase tracking-widest text-slate-400 font-black">
-                <th className="px-6 py-4 border-b border-slate-50">Status</th>
-                <th className="px-6 py-4 border-b border-slate-50">Paciente / Origem</th>
-                <th className="px-6 py-4 border-b border-slate-50">Data</th>
-                <th className="px-6 py-4 border-b border-slate-50">Forma</th>
-                <th className="px-6 py-4 border-b border-slate-50 text-right">Valor</th>
+          <table className="w-full min-w-[860px] text-left">
+            <thead className="table-head">
+              <tr className="text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Paciente / origem</th>
+                <th className="px-6 py-4">Data</th>
+                <th className="px-6 py-4">Forma</th>
+                <th className="px-6 py-4 text-right">Valor</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
-              {transacoes.length > 0 ? transacoes.map((t) => (
-                <tr key={t.id} className="hover:bg-slate-50/80 transition-all cursor-default">
-                  <td className="px-6 py-4">
-                    <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg uppercase tracking-tighter ${
-                      t.status === 'pago' 
-                        ? 'bg-emerald-100 text-emerald-700' 
-                        : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {t.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm font-bold text-slate-700">{t.paciente?.nome || 'Lançamento Avulso'}</p>
-                    <div className="flex items-center gap-1 mt-0.5">
-                       <span className="text-[9px] font-bold text-slate-400 uppercase">Ref:</span>
-                       <span className="text-[9px] font-mono font-bold text-blue-500">#{t.agendamento_id || 'N/A'}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-slate-600">
-                        {format(new Date(t.created_at || new Date()), 'dd/MM/yyyy')}
+            <tbody className="divide-y divide-slate-200/70 dark:divide-slate-800">
+              {transacoes.length > 0 ? (
+                transacoes.map((transaction) => (
+                  <tr key={transaction.id} className="table-row">
+                    <td className="px-6 py-4">
+                      <span
+                        className={`status-chip ${
+                          transaction.status === 'pago'
+                            ? 'bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300'
+                            : 'bg-amber-500/12 text-amber-700 dark:bg-amber-400/12 dark:text-amber-300'
+                        }`}
+                      >
+                        {transaction.status}
                       </span>
-                      <span className="text-[9px] text-slate-400 font-medium">
-                        Às {format(new Date(t.created_at || new Date()), 'HH:mm')}
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="font-bold text-slate-900 dark:text-slate-100">
+                        {transaction.paciente?.nome || 'Lançamento avulso'}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        Ref. #{transaction.agendamento_id || 'N/A'}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                      {format(new Date(transaction.created_at || new Date()), 'dd/MM/yyyy')} às{' '}
+                      {format(new Date(transaction.created_at || new Date()), 'HH:mm')}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                        <CreditCard className="h-4 w-4 text-slate-400" />
+                        <span className="capitalize">{transaction.forma_pagamento || transaction.metodo_pagamento}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <span className="font-display text-lg font-extrabold text-slate-950 dark:text-slate-50">
+                        R$ {Number(transaction.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-3.5 h-3.5 text-slate-300" />
-                      <span className="text-xs font-bold text-slate-500 capitalize">{t.forma_pagamento || t.metodo_pagamento}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="text-sm font-black text-slate-800 font-mono">
-                      R$ {Number(t.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                  </td>
-                </tr>
-              )) : (
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td colSpan={5} className="px-6 py-20 text-center">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <DollarSign className="w-10 h-10 text-slate-100" />
-                      <p className="text-slate-400 text-sm font-medium italic">Nenhuma movimentação financeira encontrada.</p>
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-200/60 text-slate-500 dark:bg-slate-900 dark:text-slate-300">
+                        <DollarSign className="h-7 w-7" />
+                      </div>
+                      <p className="font-semibold text-slate-800 dark:text-slate-100">Nenhuma movimentação financeira encontrada.</p>
+                      <p className="max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
+                        Registre um lançamento para começar a acompanhar a saúde financeira da clínica.
+                      </p>
                     </div>
                   </td>
                 </tr>
@@ -195,14 +198,46 @@ export function Financeiro() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      <PaymentFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={loadFinanceiro} />
+    </div>
+  );
+}
+
+function FinancialCard({
+  icon: Icon,
+  label,
+  value,
+  footer,
+  footerIcon: FooterIcon,
+  accent,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  footer: string;
+  footerIcon: any;
+  accent: string;
+}) {
+  return (
+    <div className="stat-card">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{label}</p>
+          <h3 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
+            {value}
+          </h3>
+        </div>
+        <div className={`flex h-12 w-12 items-center justify-center rounded-[20px] ${accent}`}>
+          <Icon className="h-5 w-5" />
+        </div>
       </div>
 
-      {/* COMPONENTE DO MODAL INSERIDO AQUI */}
-      <PaymentFormModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={loadFinanceiro}
-      />
+      <div className="mt-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+        <FooterIcon className="h-3.5 w-3.5" />
+        {footer}
+      </div>
     </div>
   );
 }

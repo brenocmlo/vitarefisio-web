@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { History, Plus, Lock, Clock, Calendar, CheckCircle2, Layers, Paperclip } from 'lucide-react';
+import { History, Plus, Lock, Clock, Calendar, CheckCircle2, Layers, Paperclip, ClipboardList } from 'lucide-react';
 import { format, isAfter, addHours } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EvolutionFormModal } from '../components/EvolutionFormModal';
@@ -9,25 +9,32 @@ import { AnamneseForm } from '../components/AnamneseForm';
 import { PackagesTab } from '../components/PackagesTab';
 import { AttachmentsTab } from '../components/AttachmentsTab';
 
+const tabs = [
+  { key: 'anamnese', label: 'Anamnese', icon: ClipboardList },
+  { key: 'evolucoes', label: 'Evoluções', icon: History },
+  { key: 'pacotes', label: 'Pacotes', icon: Layers },
+  { key: 'anexos', label: 'Anexos', icon: Paperclip },
+] as const;
+
 export function MedicalRecord() {
   const { id } = useParams();
   const [patient, setPatient] = useState<any>(null);
   const [evolutions, setEvolutions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'anamnese' | 'evolucoes' | 'pacotes' | 'anexos'>('anamnese');
+  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]['key']>('anamnese');
 
   async function loadData() {
     try {
       setLoading(true);
       const [patientRes, evolutionsRes] = await Promise.all([
         api.get(`/pacientes/${id}`),
-        api.get(`/pacientes/${id}/evolucoes`)
+        api.get(`/pacientes/${id}/evolucoes`),
       ]);
       setPatient(patientRes.data);
       setEvolutions(evolutionsRes.data);
     } catch (err) {
-      console.error("Erro ao carregar prontuário", err);
+      console.error('Erro ao carregar prontuário', err);
     } finally {
       setLoading(false);
     }
@@ -37,190 +44,136 @@ export function MedicalRecord() {
     loadData();
   }, [id]);
 
-  if (loading) return (
-    <div className="flex justify-center items-center h-64 text-slate-400 font-medium animate-pulse">
-      Carregando prontuário eletrónico...
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="surface-panel flex min-h-[280px] items-center justify-center text-sm font-semibold text-slate-500 dark:text-slate-400">
+        Carregando prontuário eletrônico...
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* HEADER DO PACIENTE */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center border-t-4 border-t-blue-600">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">{patient?.nome}</h1>
-          <div className="flex items-center gap-4 text-sm text-slate-500 mt-2 font-medium">
-            <span className="bg-slate-100 px-3 py-1 rounded-md">CPF: {patient?.cpf}</span>
-            <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-md">
-              Convênio: {patient?.convenio || 'Particular'}
-            </span>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <section className="surface-panel overflow-hidden">
+        <div className="hero-panel rounded-none border-0 p-6 sm:p-8">
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+            <div>
+              <p className="eyebrow mb-3 text-sky-100">Prontuário eletrônico</p>
+              <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{patient?.nome}</h1>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-sky-50/85">
+                Centralize avaliação inicial, evoluções, pacotes e documentos do paciente com um fluxo clínico mais agradável de navegar.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <RecordPill label="CPF" value={patient?.cpf || '—'} />
+              <RecordPill label="Convênio" value={patient?.convenio_nome || patient?.convenio || 'Particular'} />
+            </div>
           </div>
         </div>
-      </div>
-        
-      {/* NAVEGAÇÃO POR ABAS */}
-      <div className="flex border-b border-slate-200 gap-8 px-2">
-        <button
-          onClick={() => setActiveTab('anamnese')}
-          className={`pb-4 text-sm font-bold transition-all border-b-2 ${
-            activeTab === 'anamnese'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-400 hover:text-slate-700'
-          }`}
-        >
-          Ficha de Anamnese (Avaliação)
-        </button>
-        <button
-          onClick={() => setActiveTab('evolucoes')}
-          className={`pb-4 text-sm font-bold transition-all border-b-2 ${
-            activeTab === 'evolucoes'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-400 hover:text-slate-700'
-          }`}
-        >
-          Histórico Clínico (Evoluções)
-        </button>
-        <button
-          onClick={() => setActiveTab('pacotes')}
-          className={`pb-4 text-sm font-bold transition-all border-b-2 flex items-center gap-1.5 ${
-            activeTab === 'pacotes'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-400 hover:text-slate-700'
-          }`}
-        >
-          <Layers className="w-3.5 h-3.5" />
-          Pacotes de Sessões
-        </button>
-        <button
-          onClick={() => setActiveTab('anexos')}
-          className={`pb-4 text-sm font-bold transition-all border-b-2 flex items-center gap-1.5 ${
-            activeTab === 'anexos'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-400 hover:text-slate-700'
-          }`}
-        >
-          <Paperclip className="w-3.5 h-3.5" />
-          Exames & Documentos
-        </button>
-      </div>
+      </section>
 
-      {/* ABA: ANAMNESE */}
-      {activeTab === 'anamnese' && id && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <AnamneseForm pacienteId={id} />
+      <section className="surface-panel p-3">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const active = activeTab === tab.key;
+
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`rounded-[22px] px-4 py-3 text-left transition-all ${
+                  active
+                    ? 'bg-sky-500 text-white shadow-[0_16px_32px_rgba(14,165,233,0.22)]'
+                    : 'text-slate-500 hover:bg-slate-100/80 dark:text-slate-400 dark:hover:bg-slate-900/60'
+                }`}
+              >
+                <span className="mb-2 flex items-center gap-2 font-bold">
+                  <Icon className="h-4 w-4" />
+                  {tab.label}
+                </span>
+                <span className={`text-xs ${active ? 'text-sky-50/85' : 'text-slate-400 dark:text-slate-500'}`}>
+                  {tab.key === 'anamnese' && 'Ficha de avaliação inicial'}
+                  {tab.key === 'evolucoes' && 'Histórico clínico cronológico'}
+                  {tab.key === 'pacotes' && 'Controle de sessões contratadas'}
+                  {tab.key === 'anexos' && 'Exames, laudos e documentos'}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      )}
+      </section>
 
-      {/* ABA: EVOLUÇÕES (TIMELINE) */}
+      {activeTab === 'anamnese' && id && <AnamneseForm pacienteId={id} />}
+
       {activeTab === 'evolucoes' && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-bold text-slate-700 flex items-center gap-2">
-              <History className="w-5 h-5 text-blue-600" />
-              Linha do Tempo
-            </h3>
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-sm"
-            >
-              <Plus className="w-5 h-5" />
-              Nova Evolução
+        <div className="space-y-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="eyebrow mb-2">Linha do tempo</p>
+              <h3 className="font-display text-2xl font-extrabold text-slate-950 dark:text-slate-50">Histórico de evoluções</h3>
+            </div>
+            <button onClick={() => setIsModalOpen(true)} className="primary-button">
+              <Plus className="h-4 w-4" />
+              Nova evolução
             </button>
           </div>
 
           {evolutions.length === 0 ? (
-            <div className="bg-white p-12 text-center rounded-xl border-2 border-dashed border-slate-200 text-slate-400 flex flex-col items-center gap-3">
-              <History className="w-12 h-12 text-slate-200" />
-              <p className="font-medium">Nenhum registo clínico encontrado para este paciente.</p>
-              <button onClick={() => setIsModalOpen(true)} className="text-blue-600 font-bold hover:underline">
-                Clique aqui para registar a primeira evolução
+            <div className="surface-panel flex min-h-[260px] flex-col items-center justify-center px-6 text-center">
+              <History className="mb-4 h-12 w-12 text-slate-300 dark:text-slate-600" />
+              <p className="font-semibold text-slate-800 dark:text-slate-100">Nenhum registro clínico encontrado.</p>
+              <p className="mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
+                Crie a primeira evolução para iniciar a linha do tempo terapêutica deste paciente.
+              </p>
+              <button onClick={() => setIsModalOpen(true)} className="ghost-button mt-4 text-sky-600 dark:text-sky-300">
+                Registrar primeira evolução
               </button>
             </div>
           ) : (
-            <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
-              {evolutions.map((evo) => {
-                // Lógica de tempo corrigida para usar data_criacao e addHours
-                const dataCriacao = new Date(evo.data_criacao || evo.created_at || new Date());
-                const isLocked = isAfter(new Date(), addHours(dataCriacao, 24));
-                
+            <div className="relative space-y-4 before:absolute before:left-5 before:top-0 before:h-full before:w-px before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent dark:before:via-slate-700">
+              {evolutions.map((evolution) => {
+                const createdAt = new Date(evolution.data_criacao || evolution.created_at || new Date());
+                const isLocked = isAfter(new Date(), addHours(createdAt, 24));
+
                 return (
-                  <div key={evo.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    {/* Ícone central da Timeline */}
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-slate-50 bg-white text-blue-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                      <CheckCircle2 className="w-5 h-5" />
+                  <div key={evolution.id} className="relative flex gap-4 pl-14">
+                    <div className="absolute left-0 top-6 flex h-10 w-10 items-center justify-center rounded-full bg-sky-500 text-white shadow-[0_16px_32px_rgba(14,165,233,0.22)]">
+                      <CheckCircle2 className="h-5 w-5" />
                     </div>
-                    
-                    {/* Card de Conteúdo */}
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
-                      
-                      <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                        <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                          <Calendar className="w-4 h-4 text-blue-500" />
-                          {format(dataCriacao, "dd 'de' MMM, yyyy", { locale: ptBR })}
+
+                    <div className="surface-panel w-full overflow-hidden">
+                      <div className="flex flex-col gap-3 border-b border-slate-200/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
+                        <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+                          <Calendar className="h-4 w-4 text-sky-500" />
+                          {format(createdAt, "dd 'de' MMM 'de' yyyy", { locale: ptBR })}
                         </div>
-                        
-                        {/* Status de Segurança do Registo */}
-                        {evo.finalizada ? (
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-200 px-2 py-1 rounded uppercase tracking-wider">
-                            <Lock className="w-3 h-3" /> Assinada
+                        {evolution.finalizada ? (
+                          <span className="status-chip bg-slate-200/80 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                            <Lock className="h-3.5 w-3.5" />
+                            Assinada
                           </span>
                         ) : isLocked ? (
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded uppercase tracking-wider">
-                            <Lock className="w-3 h-3" /> Expirada (24h)
+                          <span className="status-chip bg-amber-500/12 text-amber-700 dark:bg-amber-400/12 dark:text-amber-300">
+                            <Lock className="h-3.5 w-3.5" />
+                            Expirada (24h)
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded uppercase tracking-wider">
-                            <Clock className="w-3 h-3" /> Editável
+                          <span className="status-chip bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300">
+                            <Clock className="h-3.5 w-3.5" />
+                            Editável
                           </span>
                         )}
                       </div>
 
-                      <div className="p-5 space-y-4">
-                        {/* MÉTODO SOAP ESTRUTURADO */}
-                        {evo.subjetivo && (
-                          <div>
-                            <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Subjetivo (Queixa)
-                            </h4>
-                            <p className="text-slate-700 text-sm leading-relaxed">{evo.subjetivo}</p>
-                          </div>
-                        )}
-                        
-                        {evo.objetivo && (
-                          <div>
-                            <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Objetivo (Exame Físico)
-                            </h4>
-                            <p className="text-slate-700 text-sm leading-relaxed">{evo.objetivo}</p>
-                          </div>
-                        )}
-                        
-                        {evo.avaliacao && (
-                          <div>
-                            <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Avaliação Clínica
-                            </h4>
-                            <p className="text-slate-700 text-sm leading-relaxed">{evo.avaliacao}</p>
-                          </div>
-                        )}
-                        
-                        {evo.plano && (
-                          <div>
-                            <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span> Plano de Tratamento
-                            </h4>
-                            <p className="text-slate-700 text-sm leading-relaxed">{evo.plano}</p>
-                          </div>
-                        )}
-
-                        {/* Fallback para Evoluções Antigas (Legado) */}
-                        {evo.descricao && !evo.subjetivo && (
-                          <div>
-                            <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Registo Legado
-                            </h4>
-                            <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">{evo.descricao}</p>
-                          </div>
+                      <div className="grid gap-4 p-5 lg:grid-cols-2">
+                        {evolution.subjetivo && <SoapBlock color="bg-sky-500" title="Subjetivo" text={evolution.subjetivo} />}
+                        {evolution.objetivo && <SoapBlock color="bg-emerald-500" title="Objetivo" text={evolution.objetivo} />}
+                        {evolution.avaliacao && <SoapBlock color="bg-amber-500" title="Avaliação" text={evolution.avaliacao} />}
+                        {evolution.plano && <SoapBlock color="bg-violet-500" title="Plano" text={evolution.plano} />}
+                        {evolution.descricao && !evolution.subjetivo && (
+                          <SoapBlock color="bg-slate-500" title="Registro legado" text={evolution.descricao} className="lg:col-span-2" />
                         )}
                       </div>
                     </div>
@@ -232,27 +185,47 @@ export function MedicalRecord() {
         </div>
       )}
 
-      {/* ABA: PACOTES DE SESSÕES */}
-      {activeTab === 'pacotes' && id && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <PackagesTab pacienteId={id} pacienteNome={patient?.nome} />
-        </div>
-      )}
+      {activeTab === 'pacotes' && id && <PackagesTab pacienteId={id} pacienteNome={patient?.nome} />}
 
-      {/* ABA: ANEXOS (EXAMES & DOCUMENTOS) */}
-      {activeTab === 'anexos' && id && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <AttachmentsTab pacienteId={id} />
-        </div>
-      )}
+      {activeTab === 'anexos' && id && <AttachmentsTab pacienteId={id} />}
 
-      {/* MODAL PARA NOVA EVOLUÇÃO */}
       <EvolutionFormModal
         isOpen={isModalOpen}
         patientId={id!}
         onClose={() => setIsModalOpen(false)}
         onSuccess={loadData}
       />
+    </div>
+  );
+}
+
+function RecordPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[24px] border border-white/14 bg-white/10 px-5 py-4 text-white backdrop-blur-sm">
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-100">{label}</p>
+      <p className="mt-2 text-lg font-bold">{value}</p>
+    </div>
+  );
+}
+
+function SoapBlock({
+  color,
+  title,
+  text,
+  className = '',
+}: {
+  color: string;
+  title: string;
+  text: string;
+  className?: string;
+}) {
+  return (
+    <div className={`surface-muted p-4 ${className}`}>
+      <h4 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+        <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
+        {title}
+      </h4>
+      <p className="text-sm leading-7 text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{text}</p>
     </div>
   );
 }

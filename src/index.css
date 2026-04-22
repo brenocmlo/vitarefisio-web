@@ -1,6 +1,300 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  background-color: #f8fafc;
+  color-scheme: light;
+  font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --app-bg: #f4f7fb;
+  --app-bg-secondary: #edf4fb;
+  --panel-strong: rgba(255, 255, 255, 0.82);
+  --panel-soft: rgba(255, 255, 255, 0.64);
+  --panel-muted: rgba(241, 245, 249, 0.82);
+  --border-soft: rgba(148, 163, 184, 0.2);
+  --border-strong: rgba(148, 163, 184, 0.3);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --shadow-soft: 0 20px 45px rgba(15, 23, 42, 0.08);
+  --shadow-strong: 0 28px 70px rgba(15, 23, 42, 0.14);
+  --hero-glow: rgba(14, 165, 233, 0.2);
+}
+
+html.dark {
+  color-scheme: dark;
+  --app-bg: #020617;
+  --app-bg-secondary: #0f172a;
+  --panel-strong: rgba(15, 23, 42, 0.78);
+  --panel-soft: rgba(15, 23, 42, 0.62);
+  --panel-muted: rgba(30, 41, 59, 0.72);
+  --border-soft: rgba(148, 163, 184, 0.16);
+  --border-strong: rgba(148, 163, 184, 0.28);
+  --text-primary: #e2e8f0;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --shadow-soft: 0 24px 55px rgba(2, 6, 23, 0.42);
+  --shadow-strong: 0 32px 85px rgba(2, 6, 23, 0.56);
+  --hero-glow: rgba(56, 189, 248, 0.16);
+}
+
+@layer base {
+  * {
+    border-color: var(--border-soft);
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    color: var(--text-primary);
+    background:
+      radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 34%),
+      radial-gradient(circle at top right, rgba(52, 211, 153, 0.14), transparent 28%),
+      linear-gradient(180deg, var(--app-bg-secondary) 0%, var(--app-bg) 100%);
+    background-attachment: fixed;
+    font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+    background-size: 36px 36px;
+    mask-image: radial-gradient(circle at center, black 42%, transparent 92%);
+    opacity: 0.45;
+  }
+
+  html.dark body::before {
+    opacity: 0.2;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  .font-display {
+    font-family: 'Plus Jakarta Sans', 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  ::selection {
+    background: rgba(14, 165, 233, 0.22);
+    color: inherit;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+}
+
+@layer components {
+  .surface-panel {
+    @apply rounded-[30px] border transition-all duration-300;
+    background: var(--panel-strong);
+    border-color: var(--border-soft);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(18px);
+  }
+
+  .surface-card {
+    @apply rounded-[24px] border transition-all duration-300;
+    background: var(--panel-soft);
+    border-color: var(--border-soft);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(14px);
+  }
+
+  .surface-muted {
+    @apply rounded-[22px] border;
+    background: var(--panel-muted);
+    border-color: var(--border-soft);
+  }
+
+  .hero-panel {
+    @apply rounded-[32px] border text-white;
+    background:
+      radial-gradient(circle at top right, rgba(255, 255, 255, 0.26), transparent 28%),
+      linear-gradient(135deg, #0f172a 0%, #0f3b61 42%, #0ea5e9 100%);
+    border-color: rgba(125, 211, 252, 0.16);
+    box-shadow: 0 28px 80px rgba(14, 165, 233, 0.22);
+  }
+
+  .section-title {
+    @apply text-2xl font-extrabold tracking-tight;
+    font-family: 'Plus Jakarta Sans', 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    color: var(--text-primary);
+  }
+
+  .section-copy {
+    @apply text-sm leading-6;
+    color: var(--text-secondary);
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-extrabold uppercase tracking-[0.28em];
+    color: #0ea5e9;
+  }
+
+  .primary-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold text-white transition-all duration-200;
+    background: linear-gradient(135deg, #0f172a 0%, #0369a1 42%, #0ea5e9 100%);
+    box-shadow: 0 18px 45px rgba(14, 165, 233, 0.22);
+  }
+
+  .primary-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 20px 55px rgba(14, 165, 233, 0.28);
+  }
+
+  .secondary-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-colors duration-200;
+    background: var(--panel-muted);
+    border-color: var(--border-soft);
+    color: var(--text-primary);
+  }
+
+  .secondary-button:hover {
+    background: color-mix(in srgb, var(--panel-muted) 72%, white 28%);
+  }
+
+  html.dark .secondary-button:hover {
+    background: rgba(30, 41, 59, 0.92);
+  }
+
+  .ghost-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-200;
+    color: var(--text-secondary);
+  }
+
+  .ghost-button:hover {
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--text-primary);
+  }
+
+  .icon-button {
+    @apply inline-flex h-11 w-11 items-center justify-center rounded-2xl border transition-colors duration-200;
+    background: var(--panel-muted);
+    border-color: var(--border-soft);
+    color: var(--text-secondary);
+  }
+
+  .icon-button:hover {
+    background: rgba(14, 165, 233, 0.1);
+    color: #0284c7;
+  }
+
+  .input-shell,
+  .select-shell,
+  .textarea-shell {
+    @apply w-full rounded-2xl border px-4 py-3 text-sm outline-none transition-all duration-200;
+    background: rgba(255, 255, 255, 0.72);
+    border-color: var(--border-soft);
+    color: var(--text-primary);
+  }
+
+  html.dark .input-shell,
+  html.dark .select-shell,
+  html.dark .textarea-shell {
+    background: rgba(15, 23, 42, 0.72);
+  }
+
+  .input-shell::placeholder,
+  .textarea-shell::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .input-shell:focus,
+  .select-shell:focus,
+  .textarea-shell:focus {
+    border-color: rgba(14, 165, 233, 0.55);
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
+  }
+
+  .form-label {
+    @apply mb-2 block text-sm font-semibold;
+    color: var(--text-secondary);
+  }
+
+  .helper-text {
+    @apply mt-1 text-xs;
+    color: var(--text-tertiary);
+  }
+
+  .table-shell {
+    @apply overflow-hidden rounded-[28px] border;
+    background: var(--panel-strong);
+    border-color: var(--border-soft);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .table-head {
+    background: var(--panel-muted);
+  }
+
+  .table-row {
+    @apply transition-colors duration-200;
+  }
+
+  .table-row:hover {
+    background: rgba(14, 165, 233, 0.06);
+  }
+
+  .stat-card {
+    @apply relative overflow-hidden rounded-[26px] border p-6;
+    background: var(--panel-strong);
+    border-color: var(--border-soft);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .status-chip {
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em];
+  }
+
+  .modal-backdrop {
+    @apply fixed inset-0 z-[100] flex items-center justify-center p-4;
+    background: rgba(2, 6, 23, 0.55);
+    backdrop-filter: blur(12px);
+  }
+
+  .modal-card {
+    @apply w-full rounded-[30px] border overflow-hidden;
+    background: var(--panel-strong);
+    border-color: var(--border-soft);
+    box-shadow: var(--shadow-strong);
+  }
+
+  .modal-header {
+    @apply flex items-center justify-between gap-3 border-b px-5 py-4 sm:px-6;
+    background: var(--panel-muted);
+    border-color: var(--border-soft);
+  }
+
+  .modal-footer {
+    @apply flex gap-3 border-t px-5 py-4 sm:px-6;
+    background: var(--panel-muted);
+    border-color: var(--border-soft);
+  }
 }

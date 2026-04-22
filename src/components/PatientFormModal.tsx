@@ -2,10 +2,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import api from '../services/api';
-import { X, Loader2, User } from 'lucide-react';
-import { useState } from 'react';
+import { X, Loader2, User, UserPlus } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { toast } from 'sonner'; // Se instalou o sonner, senão use alert
+import { toast } from 'sonner';
 
 const patientSchema = z.object({
   nome: z.string().min(3, 'Nome obrigatório'),
@@ -26,9 +26,20 @@ export function PatientFormModal({ isOpen, onClose, onSuccess }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<PatientFormValues>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<PatientFormValues>({
     resolver: zodResolver(patientSchema),
   });
+
+  useEffect(() => {
+    if (!isOpen) {
+      reset();
+    }
+  }, [isOpen, reset]);
 
   if (!isOpen) return null;
 
@@ -40,13 +51,13 @@ export function PatientFormModal({ isOpen, onClose, onSuccess }: Props) {
         cpf: data.cpf,
         contato_whatsapp: data.telefone,
         convenio_nome: data.convenio,
-        clinica_id: user?.clinica_id
+        clinica_id: user?.clinica_id,
       });
-      
+
       toast.success('Paciente cadastrado com sucesso!');
-      reset(); // Limpa o formulário
-      onSuccess(); // Atualiza a lista na página pai
-      onClose(); // Fecha o modal
+      reset();
+      onSuccess();
+      onClose();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao cadastrar paciente');
     } finally {
@@ -55,78 +66,69 @@ export function PatientFormModal({ isOpen, onClose, onSuccess }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm transition-opacity">
-      <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-        
-        {/* Header do Modal */}
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <User className="w-5 h-5 text-blue-600" />
-            Novo Paciente
-          </h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
-            <X className="w-5 h-5 text-slate-500" />
+    <div className="modal-backdrop justify-end">
+      <div className="modal-card flex h-full w-full max-w-lg flex-col">
+        <div className="modal-header">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-[18px] bg-sky-500/10 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300">
+              <UserPlus className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-extrabold text-slate-950 dark:text-slate-50">Novo paciente</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Cadastre dados essenciais para abrir o prontuário.</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="icon-button h-10 w-10">
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Formulário */}
-        <form onSubmit={handleSubmit(handleCreatePatient)} className="p-6 flex-1 space-y-5 overflow-y-auto">
+        <form onSubmit={handleSubmit(handleCreatePatient)} className="flex-1 space-y-5 overflow-y-auto p-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Nome Completo</label>
-            <input 
-              {...register('nome')}
-              placeholder="Ex: Maria Oliveira"
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-            {errors.nome && <p className="text-xs text-red-500 mt-1">{errors.nome.message}</p>}
+            <label className="form-label">Nome completo</label>
+            <input {...register('nome')} placeholder="Ex: Maria Oliveira" className="input-shell" />
+            {errors.nome && <p className="helper-text text-red-500">{errors.nome.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">CPF (apenas números)</label>
-            <input 
-              {...register('cpf')}
-              maxLength={11}
-              placeholder="000.000.000-00"
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-            {errors.cpf && <p className="text-xs text-red-500 mt-1">{errors.cpf.message}</p>}
+            <label className="form-label">CPF</label>
+            <input {...register('cpf')} maxLength={11} placeholder="Apenas números" className="input-shell" />
+            {errors.cpf && <p className="helper-text text-red-500">{errors.cpf.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Telefone / WhatsApp</label>
-            <input 
-              {...register('telefone')}
-              placeholder="(85) 99999-9999"
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-            {errors.telefone && <p className="text-xs text-red-500 mt-1">{errors.telefone.message}</p>}
+            <label className="form-label">Telefone / WhatsApp</label>
+            <input {...register('telefone')} placeholder="(85) 99999-9999" className="input-shell" />
+            {errors.telefone && <p className="helper-text text-red-500">{errors.telefone.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Convênio (Opcional)</label>
-            <input 
+            <label className="form-label">Convênio</label>
+            <input
               {...register('convenio')}
               placeholder="Ex: Unimed, Bradesco ou Particular"
-              className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              className="input-shell"
             />
+            <p className="helper-text">Deixe em branco para atendimento particular.</p>
           </div>
         </form>
 
-        {/* Footer do Modal */}
-        <div className="p-6 border-t border-slate-100 flex gap-3 bg-slate-50">
-          <button 
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-slate-300 text-slate-600 rounded-lg font-medium hover:bg-slate-100 transition-colors"
-          >
+        <div className="modal-footer">
+          <button type="button" onClick={onClose} className="secondary-button flex-1">
             Cancelar
           </button>
-          <button 
-            onClick={handleSubmit(handleCreatePatient)}
-            disabled={isSubmitting}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-          >
-            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Salvar'}
+          <button onClick={handleSubmit(handleCreatePatient)} disabled={isSubmitting} className="primary-button flex-1">
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <User className="h-4 w-4" />
+                Salvar paciente
+              </>
+            )}
           </button>
         </div>
       </div>

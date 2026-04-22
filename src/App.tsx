@@ -1,5 +1,6 @@
 import { type ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { useAuth } from './hooks/useAuth';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
@@ -9,13 +10,22 @@ import { Patients } from './pages/Patients';
 import { MedicalRecord } from './pages/MedicalRecord';
 import { Agenda } from './pages/Agenda';
 import { Financeiro } from './pages/Financeiro';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { useTheme } from './contexts/ThemeContext';
 
 function PrivateRoute({ children }: { children: ReactElement }) {
   const { signed, loading } = useAuth();
   
-  // Adicionado suporte a dark mode no loading
-  if (loading) return <div className="flex h-screen items-center justify-center dark:bg-slate-950 dark:text-white">Carregando...</div>;
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center px-6">
+        <div className="surface-panel flex min-w-[280px] items-center justify-center gap-3 px-6 py-5 text-sm font-semibold text-slate-600 dark:text-slate-300">
+          <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-sky-500" />
+          Carregando ambiente clínico...
+        </div>
+      </div>
+    );
+  }
+
   if (!signed) return <Navigate to="/" />;
   
   return children;
@@ -23,18 +33,24 @@ function PrivateRoute({ children }: { children: ReactElement }) {
 
 export default function App() {
   const { signed, loading } = useAuth();
+  const { resolvedTheme } = useTheme();
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center dark:bg-slate-950">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex h-screen items-center justify-center px-6">
+        <div className="surface-panel flex min-w-[280px] items-center justify-center gap-4 px-6 py-5">
+          <div className="h-9 w-9 animate-spin rounded-full border-2 border-sky-200 border-t-sky-600 dark:border-slate-700 dark:border-t-sky-400" />
+          <div>
+            <p className="font-semibold text-slate-900 dark:text-slate-100">Preparando o VitareFisio</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Sincronizando sua sessão segura.</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    // O ThemeProvider agora envolve toda a aplicação
-    <ThemeProvider>
+    <>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={signed ? <Navigate to="/dashboard" /> : <Login />} />
@@ -49,6 +65,15 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
-    </ThemeProvider>
+      <Toaster
+        closeButton
+        position="top-right"
+        richColors
+        theme={resolvedTheme}
+        toastOptions={{
+          className: 'font-sans',
+        }}
+      />
+    </>
   );
 }
