@@ -41,12 +41,15 @@ const TIPOS = [
   { value: 'outro', label: 'Outro', icon: FileText, color: 'chip-neutral' },
 ];
 
-function formatBytes(bytes: number): string {
-  if (!bytes || bytes === 0) return '—';
+function formatBytes(bytes: number | string): string {
+  // Convertemos para Number aqui para garantir que a conta funcione
+  const numericBytes = Number(bytes);
+  if (!numericBytes || numericBytes === 0) return '—';
+  
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  const i = Math.floor(Math.log(numericBytes) / Math.log(k));
+  return `${parseFloat((numericBytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
 function getFileIcon(mime: string) {
@@ -103,6 +106,7 @@ export function AttachmentsTab({ pacienteId }: AttachmentsTabProps) {
       toast.error('Selecione um arquivo antes de enviar.');
       return;
     }
+    // Aumentei para 50MB se quiser, mas mantive 10MB como seu código original
     if (formData.file.size > 10 * 1024 * 1024) {
       toast.error('Arquivo muito grande (máx. 10MB).');
       return;
@@ -111,7 +115,8 @@ export function AttachmentsTab({ pacienteId }: AttachmentsTabProps) {
     setUploading(true);
     try {
       const fd = new FormData();
-      fd.append('documento', formData.file);
+      // "documento" é o nome que definimos no routes.ts e no AnexoController
+      fd.append('documento', formData.file); 
       fd.append('titulo', formData.titulo);
       fd.append('tipo', formData.tipo);
 
@@ -146,19 +151,24 @@ export function AttachmentsTab({ pacienteId }: AttachmentsTabProps) {
     }
   }
 
-  function openAnexo(anexo: Anexo) {
-    const token = localStorage.getItem('@VitareFisio:token');
-    fetch(`${api.defaults.baseURL}/anexos/${anexo.id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((response) => response.blob())
-      .then((blob) => {
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-      })
-      .catch(() => toast.error('Não foi possível abrir o anexo.'));
+  /**
+   * AJUSTADO PARA SUPABASE:
+   * Agora o backend retorna um JSON { url: "..." } que é o link assinado.
+   */
+async function openAnexo(anexo: Anexo) {
+  try {
+    // 1. Chamada para o nosso backend para pegar o link seguro do Supabase
+    const response = await api.get(`/anexos/${anexo.id}`);
+    
+    // 2. O backend retorna { url: "https://..." }
+    if (response.data.url) {
+      // Abre o link em uma nova aba (o navegador cuida do PDF/Imagem)
+      window.open(response.data.url, '_blank');
+    }
+  } catch (err) {
+    toast.error('Não foi possível gerar o link de visualização.');
   }
-
+}
   if (loading) {
     return (
       <div className="surface-panel flex min-h-[220px] items-center justify-center text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -214,6 +224,7 @@ export function AttachmentsTab({ pacienteId }: AttachmentsTabProps) {
                 </div>
 
                 <div className="flex items-center gap-2 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                  {/* Mudamos o ícone para Download para combinar com a ação de abrir link externo */}
                   <button onClick={() => openAnexo(anexo)} className="icon-button h-10 w-10" title="Abrir ou baixar">
                     <Download className="h-4 w-4" />
                   </button>
