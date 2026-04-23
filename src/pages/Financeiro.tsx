@@ -21,7 +21,9 @@ import {
 import { format, startOfMonth, endOfMonth, subDays, isAfter, addMonths, subMonths, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
-import { PaymentFormModal } from '../components/PaymentFormModal';
+
+// ✨ Alterado para o novo componente que criamos
+import { NovoPagamentoModal } from '../components/NovoPagamentoModal'; 
 
 export function Financeiro() {
   const [rawTransacoes, setRawTransacoes] = useState<any[]>([]);
@@ -58,7 +60,6 @@ export function Financeiro() {
     const months = [];
     const currentDate = new Date();
 
-    // Gera últimos 24 meses
     for (let i = 0; i < 24; i++) {
       const date = subMonths(currentDate, i);
       months.push({
@@ -467,7 +468,8 @@ export function Financeiro() {
         </div>
       </section>
 
-      <PaymentFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={loadFinanceiro} />
+      {/* ✨ Novo Componente Inteligente Aqui */}
+      <NovoPagamentoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={loadFinanceiro} />
     </div>
   );
 }

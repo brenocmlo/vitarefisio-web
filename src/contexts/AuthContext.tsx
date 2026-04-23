@@ -6,6 +6,7 @@ interface User {
   nome: string;
   email: string;
   clinica_id?: number;
+  tipo: 'admin' | 'fisioterapeuta' | 'recepcao';
 }
 
 interface SignInCredentials {
@@ -33,7 +34,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }): ReactElemen
 
     if (storagedUser && storagedToken) {
       try {
-        api.defaults.headers.common['Authorization'] = `Bearer ${storagedToken}`;
         setUser(JSON.parse(storagedUser));
       } catch (error) {
         console.error("Erro ao fazer parse do usuário no localStorage", error);
@@ -49,20 +49,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }): ReactElemen
       const response = await api.post('/login', { email, senha });
       const { token, user } = response.data;
 
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-      setUser(user);
+      // O Interceptor do api.ts já vai pegar esse token nas próximas requisições!
       localStorage.setItem('@VitareFisio:token', token);
       localStorage.setItem('@VitareFisio:user', JSON.stringify(user));
+      
+      setUser(user);
     } catch (error) {
-      throw error; // Relança para o Login.tsx tratar
+      throw error; 
     }
   }
 
   function signOut() {
     localStorage.removeItem('@VitareFisio:token');
     localStorage.removeItem('@VitareFisio:user');
-    delete api.defaults.headers.common['Authorization'];
     setUser(null);
   }
 

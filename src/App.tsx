@@ -10,10 +10,16 @@ import { Patients } from './pages/Patients';
 import { MedicalRecord } from './pages/MedicalRecord';
 import { Agenda } from './pages/Agenda';
 import { Financeiro } from './pages/Financeiro';
+import { Staff } from './pages/Staff'; // <-- NOVA IMPORTAÇÃO
 import { useTheme } from './contexts/ThemeContext';
 
-function PrivateRoute({ children }: { children: ReactElement }) {
-  const { signed, loading } = useAuth();
+interface PrivateRouteProps {
+  children: ReactElement;
+  allowedRoles?: Array<'admin' | 'fisioterapeuta' | 'recepcao'>;
+}
+
+function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
+  const { signed, loading, user } = useAuth();
   
   if (loading) {
     return (
@@ -27,6 +33,10 @@ function PrivateRoute({ children }: { children: ReactElement }) {
   }
 
   if (!signed) return <Navigate to="/" />;
+
+  if (allowedRoles && user && !allowedRoles.includes(user.tipo)) {
+    return <Navigate to="/dashboard" />;
+  }
   
   return children;
 }
@@ -56,11 +66,19 @@ export default function App() {
           <Route path="/" element={signed ? <Navigate to="/dashboard" /> : <Login />} />
           <Route path="/signup" element={<Signup />} />
           
-          <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
-          <Route path="/agenda" element={<PrivateRoute><Layout><Agenda/></Layout></PrivateRoute>} />
-          <Route path="/pacientes" element={<PrivateRoute><Layout><Patients /></Layout></PrivateRoute>} />
-          <Route path="/pacientes/:id/prontuario" element={<PrivateRoute><Layout><MedicalRecord /></Layout></PrivateRoute>}/>
-          <Route path="/financeiro" element={<PrivateRoute><Layout><Financeiro /></Layout></PrivateRoute>}/>
+          {/* ROTAS GERAIS: Todos acessam */}
+          <Route path="/dashboard" element={<PrivateRoute allowedRoles={['admin', 'fisioterapeuta', 'recepcao']}><Layout><Dashboard /></Layout></PrivateRoute>} />
+          <Route path="/agenda" element={<PrivateRoute allowedRoles={['admin', 'fisioterapeuta', 'recepcao']}><Layout><Agenda/></Layout></PrivateRoute>} />
+          <Route path="/pacientes" element={<PrivateRoute allowedRoles={['admin', 'fisioterapeuta', 'recepcao']}><Layout><Patients /></Layout></PrivateRoute>} />
+          
+          {/* ROTAS SENSÍVEIS (CLÍNICAS): Admin e Fisioterapeuta */}
+          <Route path="/pacientes/:id/prontuario" element={<PrivateRoute allowedRoles={['admin', 'fisioterapeuta']}><Layout><MedicalRecord /></Layout></PrivateRoute>}/>
+          
+          {/* ROTAS ADMINISTRATIVAS/FINANCEIRAS: Admin e Recepção */}
+          <Route path="/financeiro" element={<PrivateRoute allowedRoles={['admin', 'recepcao']}><Layout><Financeiro /></Layout></PrivateRoute>}/>
+
+          {/* ROTA EXCLUSIVA DE GESTÃO: Apenas Admin */}
+          <Route path="/equipe" element={<PrivateRoute allowedRoles={['admin']}><Layout><Staff /></Layout></PrivateRoute>}/>
           
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
