@@ -15,16 +15,18 @@ import {
   X,
   Sparkles,
   ChevronRight,
+  UserPlus, // <-- ADICIONADO ÍCONE DA EQUIPE
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 
 const menuItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', description: 'Resumo da operação diária' },
-  { label: 'Pacientes', icon: Users, path: '/pacientes', description: 'Cadastros e histórico clínico' },
-  { label: 'Agenda', icon: Calendar, path: '/agenda', description: 'Consultas e disponibilidade' },
-  { label: 'Prontuários', icon: FileText, path: '/prontuarios', description: 'Registro e evolução clínica' },
-  { label: 'Financeiro', icon: DollarSign, path: '/financeiro', description: 'Caixa, pacotes e repasses' },
+  { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', description: 'Resumo da operação diária', allowedRoles: ['admin', 'fisioterapeuta', 'recepcao'] },
+  { label: 'Pacientes', icon: Users, path: '/pacientes', description: 'Cadastros e histórico clínico', allowedRoles: ['admin', 'fisioterapeuta', 'recepcao'] },
+  { label: 'Agenda', icon: Calendar, path: '/agenda', description: 'Consultas e disponibilidade', allowedRoles: ['admin', 'fisioterapeuta', 'recepcao'] },
+  { label: 'Prontuários', icon: FileText, path: '/prontuarios', description: 'Registro e evolução clínica', allowedRoles: ['admin', 'fisioterapeuta'] },
+  { label: 'Financeiro', icon: DollarSign, path: '/financeiro', description: 'Caixa, pacotes e repasses', allowedRoles: ['admin', 'recepcao'] },
+  { label: 'Equipe', icon: UserPlus, path: '/equipe', description: 'Gestão de profissionais', allowedRoles: ['admin'] }, // <-- NOVO MENU
 ];
 
 const pageMeta: Record<string, { title: string; description: string }> = {
@@ -43,6 +45,10 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   '/financeiro': {
     title: 'Fluxo financeiro',
     description: 'Monitore recebimentos, pendências e lançamentos da clínica.',
+  },
+  '/equipe': { // <-- NOVOS META DADOS PARA CABEÇALHO
+    title: 'Corpo clínico',
+    description: 'Gerencie permissões e visualize os fisioterapeutas da unidade.',
   },
 };
 
@@ -82,6 +88,8 @@ export function Layout({ children }: { children: ReactNode }) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join('');
+
+  const userRoleDisplay = user?.tipo ? user.tipo.charAt(0).toUpperCase() + user.tipo.slice(1) : '';
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -141,6 +149,10 @@ export function Layout({ children }: { children: ReactNode }) {
 
             <nav className="flex-1 space-y-2">
               {menuItems.map((item) => {
+                if (user?.tipo && !item.allowedRoles.includes(user.tipo)) {
+                  return null;
+                }
+
                 const isActive =
                   item.path === '/prontuarios'
                     ? location.pathname.includes('/prontuario')
@@ -256,7 +268,9 @@ export function Layout({ children }: { children: ReactNode }) {
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{user?.nome}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Fisioterapeuta em atendimento</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {userRoleDisplay || 'Usuário'} da clínica
+                    </p>
                   </div>
                 </div>
               </div>
