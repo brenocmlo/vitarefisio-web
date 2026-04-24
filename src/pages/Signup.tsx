@@ -109,7 +109,7 @@ export function Signup() {
                 </div>
                 <p className="eyebrow mb-3">Criação de conta</p>
                 <h2 className="font-display text-3xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
-                  Seja VitareFisio
+                  Seja SomosFisio
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
                   Preencha seus dados profissionais para liberar agenda, prontuário e financeiro em um único painel.

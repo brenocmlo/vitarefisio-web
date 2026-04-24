@@ -77,7 +77,7 @@ export function Layout({ children }: { children: ReactNode }) {
     }
 
     return pageMeta[location.pathname] ?? {
-      title: 'VitareFisio',
+      title: 'SomosFisio',
       description: 'Gestão clínica com uma experiência mais clara e agradável.',
     };
   }, [location.pathname]);
@@ -115,7 +115,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="surface-panel flex h-full flex-col p-4 sm:p-5">
             <div className="mb-6 flex items-start justify-between gap-3">
               <div>
-                <div className="eyebrow mb-2">VitareFisio</div>
+                <div className="eyebrow mb-2">SomosFisio</div>
                 <h2 className="font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
                   Gestão clínica
                 </h2>

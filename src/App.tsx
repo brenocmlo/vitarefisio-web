@@ -51,7 +51,7 @@ export default function App() {
         <div className="surface-panel flex min-w-[280px] items-center justify-center gap-4 px-6 py-5">
           <div className="h-9 w-9 animate-spin rounded-full border-2 border-sky-200 border-t-sky-600 dark:border-slate-700 dark:border-t-sky-400" />
           <div>
-            <p className="font-semibold text-slate-900 dark:text-slate-100">Preparando o VitareFisio</p>
+            <p className="font-semibold text-slate-900 dark:text-slate-100">Preparando o SomosFisio</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">Sincronizando sua sessão segura.</p>
           </div>
         </div>
