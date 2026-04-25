@@ -108,18 +108,18 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <div className="relative flex min-h-screen">
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-[86vw] max-w-[320px] transform p-3 sm:p-4 transition-transform duration-300 lg:static lg:w-[300px] lg:max-w-none lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-40 w-[86vw] max-w-[310px] transform p-2 sm:p-4 transition-transform duration-300 lg:static lg:w-[300px] lg:max-w-none lg:translate-x-0 ${
             mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
-          <div className="surface-panel flex h-full flex-col p-4 sm:p-5">
-            <div className="mb-6 flex items-start justify-between gap-3">
+          <div className="surface-panel flex h-full flex-col overflow-y-auto scrollbar-none p-4 sm:p-5">
+            <div className="mb-4 flex items-start justify-between gap-2 sm:mb-6 sm:gap-3">
               <div>
-                <div className="eyebrow mb-2">SomosFisio</div>
-                <h2 className="font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
+                <div className="eyebrow mb-1 sm:mb-2">SomosFisio</div>
+                <h2 className="font-display text-xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50 sm:text-2xl">
                   Gestão clínica
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-xs leading-5 text-slate-700 dark:text-slate-400 sm:mt-2 sm:text-sm sm:leading-6">
                   Mais foco na operação, menos atrito no dia a dia.
                 </p>
               </div>
@@ -133,14 +133,14 @@ export function Layout({ children }: { children: ReactNode }) {
               </button>
             </div>
 
-            <div className="surface-muted mb-6 p-4">
+            <div className="surface-muted mb-4 p-3 sm:mb-6 sm:p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300 sm:h-11 sm:w-11">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Tema sincronizado</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-50 sm:text-sm">Tema sincronizado</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 sm:text-xs">
                     Aparência atual: {resolvedTheme === 'dark' ? 'escura' : 'clara'}.
                   </p>
                 </div>
@@ -165,22 +165,22 @@ export function Layout({ children }: { children: ReactNode }) {
                     className={`group flex items-center justify-between rounded-[22px] border px-4 py-3.5 transition-all duration-200 ${
                       isActive
                         ? 'border-sky-300/50 bg-sky-500/10 text-sky-700 shadow-[0_18px_40px_rgba(14,165,233,0.14)] dark:border-sky-400/25 dark:bg-sky-400/10 dark:text-sky-300'
-                        : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white/50 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-900/40'
+                        : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white/50 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900/40'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl sm:h-11 sm:w-11 ${
                           isActive
                             ? 'bg-white/70 text-sky-600 dark:bg-slate-900/70 dark:text-sky-300'
                             : 'bg-slate-100/80 text-slate-500 dark:bg-slate-800/70 dark:text-slate-400'
                         }`}
                       >
-                        <item.icon className="h-5 w-5" />
+                        <item.icon className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold">{item.label}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{item.description}</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{item.label}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-400">{item.description}</p>
                       </div>
                     </div>
                     <ChevronRight
@@ -233,42 +233,42 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        <main className="flex min-w-0 flex-1 flex-col px-3 pb-5 pt-3 sm:px-5 sm:pb-6 sm:pt-4 lg:px-6">
-          <header className="surface-panel sticky top-3 z-20 mb-5 overflow-hidden px-4 py-4 sm:top-4 sm:mb-6 sm:px-6">
+        <main className="flex min-w-0 flex-1 flex-col px-3 pb-5 pt-3 sm:px-5 sm:pb-6 sm:pt-4 lg:px-8">
+          <header className="surface-panel sticky top-3 z-20 mb-5 overflow-hidden px-4 py-3.5 sm:top-4 sm:mb-6 sm:px-6 sm:py-4">
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-400/50 to-transparent" />
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex items-start gap-3">
                 <button
                   type="button"
-                  className="icon-button lg:hidden"
+                  className="icon-button h-10 w-10 lg:hidden shrink-0"
                   onClick={() => setMobileNavOpen(true)}
                   aria-label="Abrir navegação"
                 >
                   <PanelLeft className="h-5 w-5" />
                 </button>
-                <div className="min-w-0">
-                  <p className="eyebrow mb-2">Painel operacional</p>
-                  <h1 className="font-display text-xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50 sm:text-2xl">
+                <div className="min-w-0 flex-1">
+                  <p className="eyebrow mb-1 sm:mb-2">Painel operacional</p>
+                  <h1 className="font-display text-lg font-extrabold tracking-tight text-slate-950 dark:text-slate-50 sm:text-2xl truncate">
                     {currentPage.title}
                   </h1>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400 sm:text-[15px]">
+                  <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500 dark:text-slate-400 sm:mt-2 sm:text-[15px] sm:leading-6">
                     {currentPage.description}
                   </p>
                 </div>
               </div>
 
               <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-                <div className="surface-muted flex w-full items-center gap-3 px-3 py-2.5 sm:w-auto">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300">
+                <div className="surface-muted flex w-full items-center gap-3 px-3 py-2 sm:w-auto sm:px-3 sm:py-2.5">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300 sm:h-11 sm:w-11">
                     {initials ? (
-                      <span className="text-sm font-extrabold">{initials}</span>
+                      <span className="text-xs font-extrabold sm:text-sm">{initials}</span>
                     ) : (
-                      <UserIcon className="h-5 w-5" />
+                      <UserIcon className="h-4 w-4 sm:h-5 w-5" />
                     )}
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{user?.nome}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 sm:text-xs">
                       {userRoleDisplay || 'Usuário'} da clínica
                     </p>
                   </div>

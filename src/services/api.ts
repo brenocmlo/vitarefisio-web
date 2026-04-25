@@ -12,4 +12,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Só redireciona se o erro for 401 e NÃO for na rota de login
+    if (error.response && error.response.status === 401 && !error.config.url?.includes('/login')) {
+      localStorage.removeItem('@VitareFisio:token');
+      localStorage.removeItem('@VitareFisio:user');
+      
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

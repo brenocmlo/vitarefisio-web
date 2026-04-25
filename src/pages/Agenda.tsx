@@ -163,7 +163,7 @@ export function Agenda() {
             </div>
           </div>
 
-          <button onClick={() => handleOpenModal('08:00')} className="primary-button">
+          <button onClick={() => handleOpenModal('08:00')} className="primary-button w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             Novo agendamento
           </button>
@@ -261,8 +261,9 @@ export function Agenda() {
         <section className="surface-panel overflow-hidden">
           <div className="grid grid-cols-7 border-b border-slate-200/70 dark:border-slate-800">
             {weekDays.map((day) => (
-              <div key={day} className="px-3 py-4 text-center text-xs font-extrabold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                {day}
+              <div key={day} className="px-1 py-3 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-500 sm:px-3 sm:py-4 sm:text-xs sm:tracking-[0.2em] dark:text-slate-400">
+                <span className="sm:hidden">{day.charAt(0)}</span>
+                <span className="hidden sm:inline">{day}</span>
               </div>
             ))}
           </div>
@@ -278,7 +279,7 @@ export function Agenda() {
                     setSelectedDate(day);
                     setViewMode('day');
                   }}
-                  className={`min-h-[132px] border-b border-r p-3 text-left transition-colors ${
+                  className={`min-h-[80px] sm:min-h-[132px] border-b border-r p-1 sm:p-3 text-left transition-colors ${
                     !isSameMonth(day, selectedDate)
                       ? 'bg-slate-100/45 text-slate-400 dark:bg-slate-900/50 dark:text-slate-600'
                       : 'bg-transparent hover:bg-sky-500/[0.04] dark:hover:bg-sky-400/[0.05]'
@@ -286,7 +287,7 @@ export function Agenda() {
                 >
                   <div className="flex items-center justify-between">
                     <span
-                      className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold ${
+                      className={`flex h-6 w-6 sm:h-9 sm:w-9 items-center justify-center rounded-full text-[10px] sm:text-sm font-bold ${
                         isSameDay(day, new Date())
                           ? 'bg-sky-500 text-white'
                           : 'text-slate-700 dark:text-slate-200'
@@ -295,13 +296,13 @@ export function Agenda() {
                       {format(day, 'd')}
                     </span>
                     {dayAppointments.length > 0 && (
-                      <span className="rounded-full bg-sky-500/10 px-2 py-1 text-[10px] font-bold text-sky-700 dark:bg-sky-400/10 dark:text-sky-300">
+                      <span className="rounded-full bg-sky-500/10 px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold text-sky-700 dark:bg-sky-400/10 dark:text-sky-300">
                         {dayAppointments.length}
                       </span>
                     )}
                   </div>
 
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-2 hidden sm:block space-y-2">
                     {dayAppointments.slice(0, 3).map((appointment) => (
                       <div
                         key={appointment.id}

@@ -121,27 +121,27 @@ export function Dashboard() {
             </p>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-1">
-            <button onClick={() => setIsPatientModalOpen(true)} className="rounded-[24px] border border-white/15 bg-white/10 px-5 py-4 text-left transition-colors hover:bg-white/15">
-              <UserPlus className="mb-3 h-5 w-5 text-sky-100" />
-              <p className="font-semibold">Novo paciente</p>
-              <p className="mt-1 text-sm text-sky-50/80">Cadastre e comece o acompanhamento.</p>
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-1">
+            <button onClick={() => setIsPatientModalOpen(true)} className="rounded-[24px] border border-white/15 bg-white/10 px-4 py-4 text-left transition-colors hover:bg-white/15 sm:px-5">
+              <UserPlus className="mb-2 h-5 w-5 text-sky-100 sm:mb-3" />
+              <p className="text-sm font-semibold sm:text-base">Novo paciente</p>
+              <p className="mt-1 text-xs text-sky-50/80 sm:text-sm">Cadastre e comece o acompanhamento.</p>
             </button>
-            <button onClick={() => setIsAppointmentModalOpen(true)} className="rounded-[24px] border border-white/15 bg-white/10 px-5 py-4 text-left transition-colors hover:bg-white/15">
-              <CalendarPlus className="mb-3 h-5 w-5 text-sky-100" />
-              <p className="font-semibold">Novo agendamento</p>
-              <p className="mt-1 text-sm text-sky-50/80">Abra um horário em poucos cliques.</p>
+            <button onClick={() => setIsAppointmentModalOpen(true)} className="rounded-[24px] border border-white/15 bg-white/10 px-4 py-4 text-left transition-colors hover:bg-white/15 sm:px-5">
+              <CalendarPlus className="mb-2 h-5 w-5 text-sky-100 sm:mb-3" />
+              <p className="text-sm font-semibold sm:text-base">Novo agendamento</p>
+              <p className="mt-1 text-xs text-sky-50/80 sm:text-sm">Abra um horário em poucos cliques.</p>
             </button>
-            <button onClick={() => navigate('/financeiro')} className="rounded-[24px] border border-white/15 bg-white/10 px-5 py-4 text-left transition-colors hover:bg-white/15">
-              <DollarSign className="mb-3 h-5 w-5 text-sky-100" />
-              <p className="font-semibold">Lançar pagamento</p>
-              <p className="mt-1 text-sm text-sky-50/80">Registre sessões avulsas ou pacotes.</p>
+            <button onClick={() => navigate('/financeiro')} className="rounded-[24px] border border-white/15 bg-white/10 px-4 py-4 text-left transition-colors hover:bg-white/15 sm:grid-cols-1 sm:px-5">
+              <DollarSign className="mb-2 h-5 w-5 text-sky-100 sm:mb-3" />
+              <p className="text-sm font-semibold sm:text-base">Lançar pagamento</p>
+              <p className="mt-1 text-xs text-sky-50/80 sm:text-sm">Registre sessões avulsas ou pacotes.</p>
             </button>
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((item) => (
           <MetricCard key={item.title} {...item} />
         ))}
@@ -276,7 +276,7 @@ function MetricCard({ title, value, icon: Icon, accent }: any) {
       <div className="absolute right-4 top-4 h-24 w-24 rounded-full bg-[var(--hero-glow)] blur-2xl" />
       <div className="relative flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{title}</p>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">{title}</p>
           <h2 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50 sm:text-3xl">
             {value}
           </h2>

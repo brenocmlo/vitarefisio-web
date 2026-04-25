@@ -100,8 +100,8 @@ export function Patients() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="surface-muted flex items-center gap-3 px-4 py-3 lg:min-w-[380px]">
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="surface-muted flex flex-1 items-center gap-3 px-4 py-3 sm:max-w-[380px]">
           <Search className="h-5 w-5 text-slate-400" />
           <input
             type="text"
@@ -112,13 +112,73 @@ export function Patients() {
           />
         </div>
 
-        <button onClick={() => setIsModalOpen(true)} className="primary-button">
+        <button onClick={() => setIsModalOpen(true)} className="primary-button w-full sm:w-auto">
           <UserPlus className="h-4 w-4" />
           Novo paciente
         </button>
       </section>
 
-      <section className="table-shell">
+      <section className="space-y-4 lg:hidden">
+        {loading ? (
+          <div className="surface-panel py-10 text-center text-sm text-slate-500">Carregando pacientes...</div>
+        ) : filteredPatients.length === 0 ? (
+          <div className="surface-panel py-10 text-center text-sm text-slate-500">Nenhum paciente encontrado.</div>
+        ) : (
+          filteredPatients.map((patient) => (
+            <div key={patient.id} className="surface-panel p-4">
+              <div className="flex items-start justify-between">
+                <div className="min-w-0">
+                  <p className="truncate font-bold text-slate-900 dark:text-slate-100">{patient.nome}</p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">CPF: {patient.cpf}</p>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <Link
+                    to={`/pacientes/${patient.id}/prontuario`}
+                    className="icon-button h-10 w-10"
+                    title="Ver prontuário"
+                  >
+                    <FileText className="h-4 w-4" />
+                  </Link>
+                  <button
+                    className="icon-button h-10 w-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId((current) => (current === patient.id ? null : patient.id));
+                    }}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-800">
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="font-semibold text-slate-700 dark:text-slate-300">Contato</p>
+                  <p>{patient.contato_whatsapp || '—'}</p>
+                </div>
+                <span className={patient.convenio_nome ? 'chip-brand' : 'chip-neutral'}>
+                  {patient.convenio_nome || 'Particular'}
+                </span>
+              </div>
+
+              {openMenuId === patient.id && (
+                <div className="mt-2 rounded-2xl border border-red-100 bg-red-50/50 p-1 dark:border-red-900/30 dark:bg-red-900/10">
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePatient(patient)}
+                    disabled={deletingPatientId === patient.id}
+                    className="flex w-full items-center gap-3 px-3 py-2 text-sm font-semibold text-red-700 dark:text-red-300"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {deletingPatientId === patient.id ? 'Removendo...' : 'Remover paciente'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </section>
+
+      <section className="table-shell hidden lg:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left">
             <thead className="table-head">

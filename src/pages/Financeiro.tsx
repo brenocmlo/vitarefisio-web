@@ -340,7 +340,7 @@ export function Financeiro() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <FinancialCard
           icon={TrendingUp}
           label="Total recebido"
@@ -367,7 +367,66 @@ export function Financeiro() {
         />
       </section>
 
-      <section className="table-shell">
+      <section className="space-y-4 lg:hidden">
+        <div className="flex items-center justify-between px-2">
+          <p className="eyebrow">Movimentações</p>
+          <button onClick={handleExportReport} className="text-xs font-bold text-sky-600 dark:text-sky-300 flex items-center gap-1">
+            <Download className="h-3 w-3" />
+            Relatório
+          </button>
+        </div>
+        
+        {transacoes.length > 0 ? (
+          transacoes.map((transaction) => (
+            <div key={transaction.id} className="surface-panel p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span
+                    className={`status-chip mb-2 ${
+                      transaction.status === 'pago'
+                        ? 'bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300'
+                        : 'bg-amber-500/12 text-amber-700 dark:bg-amber-400/12 dark:text-amber-300'
+                    }`}
+                  >
+                    {transaction.status}
+                  </span>
+                  <p className="font-bold text-slate-900 dark:text-slate-100">
+                    {transaction.paciente?.nome || 'Lançamento avulso'}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {format(new Date(transaction.created_at || new Date()), 'dd/MM/yyyy')} às {format(new Date(transaction.created_at || new Date()), 'HH:mm')}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-display text-lg font-extrabold text-slate-950 dark:text-slate-50">
+                    R$ {Number(transaction.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                  <button
+                    onClick={() => handleDeletePayment(transaction)}
+                    disabled={deletingPaymentId === transaction.id}
+                    className="mt-2 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-900/10 dark:text-red-400"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+                <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                  <CreditCard className="h-3.5 w-3.5 text-slate-400" />
+                  <span className="capitalize">{transaction.forma_pagamento || transaction.metodo_pagamento}</span>
+                </div>
+                <span className={transaction.status === 'pago' ? 'chip-success text-[10px]' : 'chip-warning text-[10px]'}>
+                  {transaction.status === 'pago' ? 'Confirmado' : 'Pendente'}
+                </span>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="surface-panel py-10 text-center text-sm text-slate-500">Nenhuma movimentação encontrada.</div>
+        )}
+      </section>
+
+      <section className="table-shell hidden lg:block">
         <div className="flex flex-col gap-3 border-b border-slate-200/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
           <div>
             <p className="eyebrow mb-2">Movimentações</p>
@@ -493,7 +552,7 @@ function FinancialCard({
     <div className="stat-card">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{label}</p>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">{label}</p>
           <h3 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
             {value}
           </h3>
