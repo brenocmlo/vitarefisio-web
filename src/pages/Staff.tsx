@@ -76,11 +76,11 @@ export function Staff() {
               </div>
             </div>
 
-            {/* BOTÃO DE REMOVER (Só aparece ao passar o mouse ou em telas menores) */}
-            {member.id !== user?.id && (
+            {/* BOTÃO DE REMOVER (Exclusivo para Admin) */}
+            {user?.tipo === 'admin' && member.id !== user?.id && (
               <button 
                 onClick={() => handleRemoveMember(member.id, member.nome)}
-                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100"
+                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-200 dark:hover:border-red-500/20"
                 title="Revogar Acesso"
               >
                 <Trash2 className="h-4 w-4" />

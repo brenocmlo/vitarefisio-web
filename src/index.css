@@ -29,8 +29,8 @@ html.dark {
   --border-soft: rgba(148, 163, 184, 0.16);
   --border-strong: rgba(148, 163, 184, 0.28);
   --text-primary: #f8fafc;
-  --text-secondary: #e2e8f0;
-  --text-tertiary: #94a3b8;
+  --text-secondary: #f1f5f9;
+  --text-tertiary: #cbd5e1;
   --shadow-soft: 0 24px 55px rgba(2, 6, 23, 0.42);
   --shadow-strong: 0 32px 85px rgba(2, 6, 23, 0.56);
   --hero-glow: rgba(56, 189, 248, 0.16);
