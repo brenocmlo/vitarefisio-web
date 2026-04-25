@@ -59,7 +59,15 @@ export function FisioterapeutaFormModal({ isOpen, onClose, onSuccess }: Fisioter
       toast.success('Profissional cadastrado com sucesso!');
       
       // Limpa os campos para o próximo cadastro
-      setFormData({ nome: '', email: '', cpf: '', crefito: '', telefone: '', especialidade: '' }); 
+      setFormData({ 
+        nome: '', 
+        email: '', 
+        cpf: '', 
+        crefito: '', 
+        telefone: '', 
+        especialidade: '',
+        is_autonomo: false 
+      }); 
       
       onSuccess(); // Recarrega a lista lá atrás na página Staff.tsx
       onClose();   // Fecha o modal
