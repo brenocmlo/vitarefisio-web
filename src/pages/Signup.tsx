@@ -154,6 +154,18 @@ export function Signup() {
                   {errors.password && <span className="helper-text text-red-500">{errors.password.message}</span>}
                 </div>
 
+                <div className="flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-white/50 p-4 dark:border-slate-700/50 dark:bg-slate-900/40">
+                  <input
+                    type="checkbox"
+                    id="is_autonomo"
+                    defaultChecked
+                    className="h-5 w-5 rounded-lg border-slate-300 text-sky-600 focus:ring-sky-500 dark:border-slate-600 dark:bg-slate-700"
+                  />
+                  <label htmlFor="is_autonomo" className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer">
+                    Eu sou um fisioterapeuta autônomo
+                  </label>
+                </div>
+
                 <button type="submit" disabled={isSubmitting} className="primary-button mt-2 w-full">
                   {isSubmitting ? (
                     <>

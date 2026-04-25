@@ -10,36 +10,12 @@ import { Patients } from './pages/Patients';
 import { MedicalRecord } from './pages/MedicalRecord';
 import { Agenda } from './pages/Agenda';
 import { Financeiro } from './pages/Financeiro';
-import { Staff } from './pages/Staff'; // <-- NOVA IMPORTAÇÃO
+import { Staff } from './pages/Staff';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 import { useTheme } from './contexts/ThemeContext';
 
-interface PrivateRouteProps {
-  children: ReactElement;
-  allowedRoles?: Array<'admin' | 'fisioterapeuta' | 'recepcao'>;
-}
-
-function PrivateRoute({ children, allowedRoles }: PrivateRouteProps) {
-  const { signed, loading, user } = useAuth();
-  
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center px-6">
-        <div className="surface-panel flex min-w-[280px] items-center justify-center gap-3 px-6 py-5 text-sm font-semibold text-slate-600 dark:text-slate-300">
-          <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-sky-500" />
-          Carregando ambiente clínico...
-        </div>
-      </div>
-    );
-  }
-
-  if (!signed) return <Navigate to="/" />;
-
-  if (allowedRoles && user && !allowedRoles.includes(user.tipo)) {
-    return <Navigate to="/dashboard" />;
-  }
-  
-  return children;
-}
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 export default function App() {
   const { signed, loading } = useAuth();
@@ -65,20 +41,30 @@ export default function App() {
         <Routes>
           <Route path="/" element={signed ? <Navigate to="/dashboard" /> : <Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           
-          {/* ROTAS GERAIS: Todos acessam */}
-          <Route path="/dashboard" element={<PrivateRoute allowedRoles={['admin', 'fisioterapeuta', 'recepcao']}><Layout><Dashboard /></Layout></PrivateRoute>} />
-          <Route path="/agenda" element={<PrivateRoute allowedRoles={['admin', 'fisioterapeuta', 'recepcao']}><Layout><Agenda/></Layout></PrivateRoute>} />
-          <Route path="/pacientes" element={<PrivateRoute allowedRoles={['admin', 'fisioterapeuta', 'recepcao']}><Layout><Patients /></Layout></PrivateRoute>} />
+          {/* ROTAS COMUNS: Todos acessam */}
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'fisioterapeuta', 'recepcao']} />}>
+            <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+            <Route path="/agenda" element={<Layout><Agenda/></Layout>} />
+            <Route path="/pacientes" element={<Layout><Patients /></Layout>} />
+          </Route>
           
           {/* ROTAS SENSÍVEIS (CLÍNICAS): Admin e Fisioterapeuta */}
-          <Route path="/pacientes/:id/prontuario" element={<PrivateRoute allowedRoles={['admin', 'fisioterapeuta']}><Layout><MedicalRecord /></Layout></PrivateRoute>}/>
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'fisioterapeuta']} />}>
+            <Route path="/pacientes/:id/prontuario" element={<Layout><MedicalRecord /></Layout>}/>
+          </Route>
           
-          {/* ROTAS ADMINISTRATIVAS/FINANCEIRAS: Admin e Recepção */}
-          <Route path="/financeiro" element={<PrivateRoute allowedRoles={['admin', 'recepcao']}><Layout><Financeiro /></Layout></PrivateRoute>}/>
+          {/* ROTAS ADMINISTRATIVAS/FINANCEIRAS: Admin, Recepção e Fisioterapeuta */}
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'recepcao', 'fisioterapeuta']} />}>
+            <Route path="/financeiro" element={<Layout><Financeiro /></Layout>}/>
+          </Route>
 
           {/* ROTA EXCLUSIVA DE GESTÃO: Apenas Admin */}
-          <Route path="/equipe" element={<PrivateRoute allowedRoles={['admin']}><Layout><Staff /></Layout></PrivateRoute>}/>
+          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route path="/equipe" element={<Layout><Staff /></Layout>}/>
+          </Route>
           
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

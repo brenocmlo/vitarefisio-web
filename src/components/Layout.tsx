@@ -25,7 +25,7 @@ const menuItems = [
   { label: 'Pacientes', icon: Users, path: '/pacientes', description: 'Cadastros e histórico clínico', allowedRoles: ['admin', 'fisioterapeuta', 'recepcao'] },
   { label: 'Agenda', icon: Calendar, path: '/agenda', description: 'Consultas e disponibilidade', allowedRoles: ['admin', 'fisioterapeuta', 'recepcao'] },
   { label: 'Prontuários', icon: FileText, path: '/prontuarios', description: 'Registro e evolução clínica', allowedRoles: ['admin', 'fisioterapeuta'] },
-  { label: 'Financeiro', icon: DollarSign, path: '/financeiro', description: 'Caixa, pacotes e repasses', allowedRoles: ['admin', 'recepcao'] },
+  { label: 'Financeiro', icon: DollarSign, path: '/financeiro', description: 'Caixa, pacotes e repasses', allowedRoles: ['admin', 'recepcao', 'fisioterapeuta'] },
   { label: 'Equipe', icon: UserPlus, path: '/equipe', description: 'Gestão de profissionais', allowedRoles: ['admin'] }, // <-- NOVO MENU
 ];
 

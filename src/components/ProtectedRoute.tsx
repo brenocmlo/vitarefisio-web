@@ -1,4 +1,4 @@
-// src/components/ProtectedRoute.tsx
+import { ReactElement } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
@@ -7,19 +7,26 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
-  const { user } = useAuth();
-
-  // 1. Se não estiver logado de jeito nenhum, chuta pro Login
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  const { signed, loading, user } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center px-6">
+        <div className="surface-panel flex min-w-[280px] items-center justify-center gap-3 px-6 py-5 text-sm font-semibold text-slate-600 dark:text-slate-300">
+          <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-sky-500" />
+          Carregando ambiente clínico...
+        </div>
+      </div>
+    );
   }
 
-  // 2. Se a rota tem uma lista de perfis permitidos E o usuário atual NÃO está nessa lista
-  if (allowedRoles && !allowedRoles.includes(user.tipo)) {
-    // Redireciona para o Dashboard (ou uma página de "Acesso Negado")
+  if (!signed) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (allowedRoles && user && !allowedRoles.includes(user.tipo)) {
     return <Navigate to="/dashboard" replace />;
   }
-
-  // 3. Se estiver tudo certo, renderiza a tela que ele pediu
+  
   return <Outlet />;
 }

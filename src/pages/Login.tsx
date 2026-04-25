@@ -145,7 +145,13 @@ export function Login() {
                 </div>
 
                 <div>
-                  <label className="form-label">Senha</label>
+                  <div className="flex items-center justify-between">
+                    <label className="form-label">Senha</label>
+                    <Link to="/forgot-password" title="Recuperar senha" 
+                      className="text-xs font-semibold text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300">
+                      Esqueci minha senha
+                    </Link>
+                  </div>
                   <input
                     {...register('password')}
                     type="password"

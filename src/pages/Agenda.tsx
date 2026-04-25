@@ -28,7 +28,7 @@ import {
 import { ptBR } from 'date-fns/locale';
 import { AppointmentFormModal } from '../components/AppointmentFormModal';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
@@ -39,6 +39,18 @@ export function Agenda() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedHour, setSelectedHour] = useState('08:00');
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('google_sync') === 'success') {
+      toast.success('Agenda sincronizada com o Google Calendar!', {
+        description: 'Seus próximos agendamentos serão enviados automaticamente.',
+      });
+      // Limpa o parâmetro da URL sem recarregar a página
+      searchParams.delete('google_sync');
+      setSearchParams(searchParams);
+    }
+  }, [searchParams, setSearchParams]);
 
   function getApiMessage(error: any) {
     return error?.response?.data?.message || error?.response?.data?.error || 'Não foi possível concluir a ação.';
@@ -87,6 +99,17 @@ export function Agenda() {
       toast.error(getApiMessage(error));
     } finally {
       setCancellingId(null);
+    }
+  }
+
+  async function handleConnectGoogle() {
+    try {
+      const response = await api.get('/google/auth');
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      }
+    } catch (error) {
+      toast.error('Erro ao conectar com Google Calendar.');
     }
   }
 
@@ -163,10 +186,23 @@ export function Agenda() {
             </div>
           </div>
 
-          <button onClick={() => handleOpenModal('08:00')} className="primary-button w-full sm:w-auto">
-            <Plus className="h-4 w-4" />
-            Novo agendamento
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleConnectGoogle}
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-200 dark:hover:bg-slate-900"
+            >
+              <div className="flex h-5 w-5 items-center justify-center rounded-lg bg-red-500/10 p-0.5">
+                <svg viewBox="0 0 24 24" className="h-full w-full fill-red-500">
+                  <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.92 3.32-2.12 4.52-1.2 1.2-2.84 2.12-5.72 2.12-4.2 0-7.76-3.48-7.76-7.84s3.56-7.84 7.76-7.84c2.28 0 3.92.88 5.16 2.08l2.32-2.32C18.16 3.08 15.68 2 12.48 2 6.44 2 1.56 6.88 1.56 12.92s4.88 10.92 10.92 10.92c3.28 0 5.76-1.08 7.64-3.08 1.92-1.92 2.52-4.64 2.52-6.92 0-.64-.04-1.24-.12-1.84h-10.04z" />
+                </svg>
+              </div>
+              Google Calendar
+            </button>
+            <button onClick={() => handleOpenModal('08:00')} className="primary-button w-full sm:w-auto">
+              <Plus className="h-4 w-4" />
+              Novo agendamento
+            </button>
+          </div>
         </div>
       </section>
 

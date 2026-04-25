@@ -22,6 +22,7 @@ export function FisioterapeutaFormModal({ isOpen, onClose, onSuccess }: Fisioter
     crefito: '',
     telefone: '',
     especialidade: '',
+    is_autonomo: false,
   });
 
   // Se o modal estiver fechado, não renderiza nada na tela
@@ -29,7 +30,8 @@ export function FisioterapeutaFormModal({ isOpen, onClose, onSuccess }: Fisioter
 
   // Função genérica para atualizar os inputs
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
   }
 
   // A função principal que envia para o backend
@@ -38,12 +40,20 @@ export function FisioterapeutaFormModal({ isOpen, onClose, onSuccess }: Fisioter
     setIsLoading(true);
 
     try {
-      // O SEGREDO ESTÁ AQUI: Misturamos o que o usuário digitou com os dados obrigatórios invisíveis
+      const clinicaId = Number(user?.clinica_id);
+
+      if (!clinicaId) {
+        toast.error("Erro de sessão: Clínica não identificada. Tente fazer logout e login novamente.");
+        setIsLoading(false);
+        return;
+      }
+
       await api.post('/fisioterapeutas', {
         ...formData,
-        tipo: 'fisioterapeuta',        // A role (nível de acesso)
-        clinica_id: user?.clinica_id,  // Vincula o fisioterapeuta à sua clínica
-        senha: 'mudar123',             // Senha inicial para ele acessar o sistema a primeira vez
+        tipo: 'fisioterapeuta',        
+        clinica_id: clinicaId,
+        is_autonomo: formData.is_autonomo,
+        senha: 'mudar123',             
       });
 
       toast.success('Profissional cadastrado com sucesso!');
@@ -127,6 +137,20 @@ export function FisioterapeutaFormModal({ isOpen, onClose, onSuccess }: Fisioter
                      className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white" 
                      placeholder="Ex: Traumato-Ortopedia" />
             </div>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3 dark:border-slate-700 dark:bg-slate-900/40">
+            <input
+              type="checkbox"
+              name="is_autonomo"
+              id="modal_is_autonomo"
+              checked={formData.is_autonomo}
+              onChange={handleChange}
+              className="h-5 w-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700"
+            />
+            <label htmlFor="modal_is_autonomo" className="text-sm font-semibold text-slate-700 dark:text-slate-200 cursor-pointer">
+              Profissional Autônomo (Parceiro)
+            </label>
           </div>
 
           {/* BOTÕES */}
