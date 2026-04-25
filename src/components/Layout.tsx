@@ -119,7 +119,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 <h2 className="font-display text-xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50 sm:text-2xl">
                   Gestão clínica
                 </h2>
-                <p className="mt-1 text-xs leading-5 text-slate-700 dark:text-slate-400 sm:mt-2 sm:text-sm sm:leading-6">
+                <p className="mt-1 text-xs leading-5 text-slate-700 dark:text-slate-200 sm:mt-2 sm:text-sm sm:leading-6">
                   Mais foco na operação, menos atrito no dia a dia.
                 </p>
               </div>
@@ -140,7 +140,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-900 dark:text-slate-50 sm:text-sm">Tema sincronizado</p>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 sm:text-xs">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-300 sm:text-xs">
                     Aparência atual: {resolvedTheme === 'dark' ? 'escura' : 'clara'}.
                   </p>
                 </div>
@@ -165,7 +165,7 @@ export function Layout({ children }: { children: ReactNode }) {
                     className={`group flex items-center justify-between rounded-[22px] border px-4 py-3.5 transition-all duration-200 ${
                       isActive
                         ? 'border-sky-300/50 bg-sky-500/10 text-sky-700 shadow-[0_18px_40px_rgba(14,165,233,0.14)] dark:border-sky-400/25 dark:bg-sky-400/10 dark:text-sky-300'
-                        : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white/50 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900/40'
+                        : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white/50 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-900/40'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -180,7 +180,7 @@ export function Layout({ children }: { children: ReactNode }) {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{item.label}</p>
-                        <p className="text-xs text-slate-600 dark:text-slate-400">{item.description}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300">{item.description}</p>
                       </div>
                     </div>
                     <ChevronRight
@@ -251,7 +251,7 @@ export function Layout({ children }: { children: ReactNode }) {
                   <h1 className="font-display text-lg font-extrabold tracking-tight text-slate-950 dark:text-slate-50 sm:text-2xl truncate">
                     {currentPage.title}
                   </h1>
-                  <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500 dark:text-slate-400 sm:mt-2 sm:text-[15px] sm:leading-6">
+                  <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-500 dark:text-slate-300 sm:mt-2 sm:text-[15px] sm:leading-6">
                     {currentPage.description}
                   </p>
                 </div>
@@ -268,7 +268,7 @@ export function Layout({ children }: { children: ReactNode }) {
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{user?.nome}</p>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 sm:text-xs">
+                    <p className="text-[10px] text-slate-500 dark:text-slate-300 sm:text-xs">
                       {userRoleDisplay || 'Usuário'} da clínica
                     </p>
                   </div>
