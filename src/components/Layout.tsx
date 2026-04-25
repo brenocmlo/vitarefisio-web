@@ -18,7 +18,9 @@ import {
   UserPlus, // <-- ADICIONADO ÍCONE DA EQUIPE
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useTheme } from '../contexts/ThemeContext';
+import api from '../services/api';
 
 const menuItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', description: 'Resumo da operação diária', allowedRoles: ['admin', 'fisioterapeuta', 'recepcao'] },
