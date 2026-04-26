@@ -13,6 +13,7 @@ interface Patient {
   contato_whatsapp: string;
   convenio_nome?: string;
   sessoes_restantes: number;
+  sessoes_total: number;
 }
 
 export function Patients() {
@@ -169,9 +170,19 @@ export function Patients() {
                 </div>
               </div>
               <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-800">
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  <p className="font-semibold text-slate-700 dark:text-slate-300">Contato</p>
-                  <p>{patient.contato_whatsapp || '—'}</p>
+                <div className="flex-1">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sessões</p>
+                  <div className="mt-1 flex items-center gap-3">
+                    <div className="h-1.5 w-24 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-sky-500" 
+                        style={{ width: `${Math.min(100, ((patient.sessoes_restantes || 0) / (patient.sessoes_total || Math.max(1, patient.sessoes_restantes))) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                      {patient.sessoes_restantes}
+                    </span>
+                  </div>
                 </div>
                 <span className={patient.convenio_nome ? 'chip-brand' : 'chip-neutral'}>
                   {patient.convenio_nome || 'Particular'}
@@ -242,11 +253,19 @@ export function Patients() {
                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{patient.cpf}</td>
                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{patient.contato_whatsapp || '—'}</td>
                     <td className="px-6 py-4 text-center">
-                      <div className="flex flex-col items-center">
-                        <span className={`text-sm font-extrabold ${patient.sessoes_restantes > 0 ? 'text-sky-600 dark:text-sky-400' : 'text-slate-400'}`}>
-                          {patient.sessoes_restantes}
-                        </span>
-                        <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Restantes</p>
+                      <div className="mx-auto w-24">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-sm font-extrabold ${patient.sessoes_restantes > 0 ? 'text-sky-600 dark:text-sky-400' : 'text-slate-400'}`}>
+                            {patient.sessoes_restantes}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-bold">/ {patient.sessoes_total || patient.sessoes_restantes}</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-sky-500 transition-all duration-500" 
+                            style={{ width: `${Math.min(100, ((patient.sessoes_restantes || 0) / (patient.sessoes_total || Math.max(1, patient.sessoes_restantes))) * 100)}%` }}
+                          />
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">

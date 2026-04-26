@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { History, Plus, Lock, Clock, Calendar, CheckCircle2, Layers, Paperclip, ClipboardList } from 'lucide-react';
+import { History, Plus, Lock, Clock, Calendar, CheckCircle2, Layers, Paperclip, ClipboardList, ShieldCheck } from 'lucide-react';
 import { format, isAfter, addHours } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EvolutionFormModal } from '../components/EvolutionFormModal';
@@ -55,20 +55,51 @@ export function MedicalRecord() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <section className="surface-panel overflow-hidden">
-        <div className="hero-panel rounded-none border-0 p-6 sm:p-8">
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div>
-              <p className="eyebrow mb-3 text-sky-100">Prontuário eletrônico</p>
-              <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{patient?.nome}</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-sky-50/85">
-                Centralize avaliação inicial, evoluções, pacotes e documentos do paciente com um fluxo clínico mais agradável de navegar.
-              </p>
+        <div className="hero-panel rounded-none border-0 p-6 sm:p-10">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex-1">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-sky-100">
+                <ClipboardList size={14} />
+                Prontuário Digital
+              </div>
+              <h1 className="font-display text-4xl font-extrabold tracking-tighter sm:text-5xl">{patient?.nome}</h1>
+              <div className="mt-4 flex flex-wrap items-center gap-4 text-sm font-medium text-sky-50/80">
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck size={16} className="text-sky-300" />
+                  {patient?.cpf || '—'}
+                </span>
+                <span className="h-1 w-1 rounded-full bg-white/30" />
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 size={16} className="text-sky-300" />
+                  {patient?.convenio_nome || 'Particular'}
+                </span>
+              </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <RecordPill label="CPF" value={patient?.cpf || '—'} />
-              <RecordPill label="Sessões" value={patient?.sessoes_restantes !== undefined ? `${patient.sessoes_restantes} restantes` : '—'} />
-              <RecordPill label="Convênio" value={patient?.convenio_nome || patient?.convenio || 'Particular'} />
+            <div className="w-full max-w-md shrink-0">
+              <div className="rounded-[32px] bg-white/10 p-6 backdrop-blur-md border border-white/10 shadow-2xl">
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-xs font-black uppercase tracking-widest text-sky-100">Saldo de sessões</span>
+                  <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-black text-white">
+                    {patient?.sessoes_restantes || 0} de {patient?.sessoes_total || patient?.sessoes_restantes || 0}
+                  </span>
+                </div>
+                
+                <div className="relative h-4 w-full overflow-hidden rounded-full bg-white/20">
+                  <div
+                    className="h-full bg-gradient-to-r from-sky-300 to-white transition-all duration-1000 ease-out shadow-[0_0_20px_rgba(255,255,255,0.4)]"
+                    style={{ 
+                      width: `${Math.min(100, ((patient?.sessoes_restantes || 0) / (patient?.sessoes_total || Math.max(1, patient?.sessoes_restantes || 0))) * 100)}%` 
+                    }}
+                  />
+                </div>
+                
+                <p className="mt-4 text-center text-[10px] font-bold uppercase tracking-widest text-sky-100/70">
+                  {patient?.sessoes_restantes > 0 
+                    ? 'O saldo diminui automaticamente a cada evolução' 
+                    : 'Sem pacotes ativos para este paciente'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
