@@ -212,7 +212,7 @@ const ForWhom = () => {
           {cards.map((card, idx) => (
             <div 
               key={idx} 
-              className="group p-10 rounded-[40px] bg-slate-50 hover:bg-white border border-transparent hover:border-slate-100 transition-all duration-500 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] flex flex-col"
+              className={`reveal-hidden reveal-delay-${(idx % 4) + 1} group p-10 rounded-[40px] bg-slate-50 hover:bg-white border border-transparent hover:border-slate-100 transition-all duration-500 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] flex flex-col`}
             >
               <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-8 group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-500">
                 {React.cloneElement(card.icon as React.ReactElement<any>, { 
@@ -261,7 +261,7 @@ const Features = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feat, idx) => (
-            <div key={idx} className="group p-8 rounded-[32px] bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300">
+            <div key={idx} className={`reveal-hidden reveal-delay-${(idx % 3) + 1} group p-8 rounded-[32px] bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300`}>
               <div className={`w-12 h-12 rounded-xl ${feat.color} flex items-center justify-center mb-6 shadow-lg shadow-black/20 group-hover:scale-110 transition-transform`}>
                 {React.cloneElement(feat.icon as React.ReactElement<any>, { size: 24, className: "text-white" })}
               </div>
@@ -507,16 +507,36 @@ const Footer = () => {
 // --- Main Page Component ---
 
 const LandingPage: React.FC = () => {
+  React.useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal-visible');
+        }
+      });
+    }, observerOptions);
+
+    const hiddenElements = document.querySelectorAll('.reveal-hidden');
+    hiddenElements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-blue-600 selection:text-white scroll-smooth">
       <Navbar />
       <main>
         <Hero />
-        <ForWhom />
-        <Features />
-        <Pricing />
-        <ClinicaCTA />
-        <FAQ />
+        <div className="reveal-hidden"><ForWhom /></div>
+        <div className="reveal-hidden"><Features /></div>
+        <div className="reveal-hidden"><Pricing /></div>
+        <div className="reveal-hidden"><ClinicaCTA /></div>
+        <div className="reveal-hidden"><FAQ /></div>
       </main>
       <Footer />
     </div>
