@@ -13,8 +13,8 @@ import { Financeiro } from './pages/Financeiro';
 import { Staff } from './pages/Staff';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
+import LandingPage from './pages/LandingPage';
 import { useTheme } from './contexts/ThemeContext';
-
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export default function App() {
@@ -39,7 +39,8 @@ export default function App() {
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={signed ? <Navigate to="/dashboard" /> : <Login />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={signed ? <Navigate to="/dashboard" /> : <Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
