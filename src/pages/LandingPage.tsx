@@ -286,10 +286,10 @@ const Pricing = () => {
     <section id="planos" className="py-32 bg-slate-50 overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
-          O plano ideal para sua fase.
+          Planos para Fisioterapeutas Autônomos
         </h2>
         <p className="text-slate-500 font-medium text-lg mb-20 max-w-2xl mx-auto">
-          Sem taxas de adesão, sem contratos de fidelidade. Teste por 30 dias sem compromisso.
+          A liberdade que você precisa com o controle que sua carreira merece. Teste por 30 dias sem compromisso.
         </p>
 
         {/* Efeito interativo solicitado: ao passar o mouse em um, os outros diminuem */}
@@ -347,6 +347,39 @@ const Pricing = () => {
               </button>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ClinicaCTA = () => {
+  return (
+    <section className="py-24 bg-blue-600 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)] pointer-events-none"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-[48px] p-8 md:p-16 flex flex-col lg:flex-row items-center justify-between gap-12 shadow-2xl">
+          <div className="max-w-xl text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/30 text-white text-[10px] font-black uppercase tracking-widest mb-6">
+              <ShieldCheck size={14} />
+              Solução Corporativa
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none mb-6">
+              Você é dono de clínica? <br />
+              <span className="text-blue-200">Temos ofertas especiais.</span>
+            </h2>
+            <p className="text-blue-100 text-lg font-medium opacity-80 mb-8">
+              Sistemas multi-usuários, relatórios avançados de produtividade e faturamento consolidado. Fale com um especialista para um plano sob medida.
+            </p>
+          </div>
+          
+          <button
+            onClick={() => window.open('https://wa.me/5511999999999?text=Olá! Sou dono de clínica e gostaria de conhecer os planos especiais do SomosFisio.', '_blank')}
+            className="group bg-white text-blue-600 px-12 py-6 rounded-2xl font-black text-xl transition-all transform hover:scale-105 active:scale-95 shadow-2xl flex items-center gap-4"
+          >
+            FALAR COM ESPECIALISTA
+            <MessageSquare size={24} className="group-hover:rotate-12 transition-transform" />
+          </button>
         </div>
       </div>
     </section>
@@ -452,6 +485,7 @@ const LandingPage: React.FC = () => {
         <ForWhom />
         <Features />
         <Pricing />
+        <ClinicaCTA />
         <FAQ />
       </main>
       <Footer />
