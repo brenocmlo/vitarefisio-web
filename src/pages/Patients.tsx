@@ -12,6 +12,7 @@ interface Patient {
   cpf: string;
   contato_whatsapp: string;
   convenio_nome?: string;
+  sessoes_restantes: number;
 }
 
 export function Patients() {
@@ -203,6 +204,7 @@ export function Patients() {
                 <th className="px-6 py-4">Paciente</th>
                 <th className="px-6 py-4">CPF</th>
                 <th className="px-6 py-4">Contato</th>
+                <th className="px-6 py-4 text-center">Sessões</th>
                 <th className="px-6 py-4">Convênio</th>
                 <th className="px-6 py-4 text-center">Ações</th>
               </tr>
@@ -239,6 +241,14 @@ export function Patients() {
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{patient.cpf}</td>
                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{patient.contato_whatsapp || '—'}</td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex flex-col items-center">
+                        <span className={`text-sm font-extrabold ${patient.sessoes_restantes > 0 ? 'text-sky-600 dark:text-sky-400' : 'text-slate-400'}`}>
+                          {patient.sessoes_restantes}
+                        </span>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Restantes</p>
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       <span
                         className={patient.convenio_nome ? 'chip-brand' : 'chip-neutral'}

@@ -65,8 +65,9 @@ export function MedicalRecord() {
               </p>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <RecordPill label="CPF" value={patient?.cpf || '—'} />
+              <RecordPill label="Sessões" value={patient?.sessoes_restantes !== undefined ? `${patient.sessoes_restantes} restantes` : '—'} />
               <RecordPill label="Convênio" value={patient?.convenio_nome || patient?.convenio || 'Particular'} />
             </div>
           </div>
