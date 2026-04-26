@@ -47,8 +47,9 @@ export function Login() {
       });
 
       navigate('/dashboard');
-    } catch {
-      setError('Credenciais inválidas. Tente novamente.');
+    } catch (err: any) {
+      const backendMessage = err.response?.data?.error;
+      setError(backendMessage || 'Credenciais inválidas. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
