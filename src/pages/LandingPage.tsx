@@ -374,7 +374,7 @@ const ClinicaCTA = () => {
           </div>
           
           <button
-            onClick={() => window.open('https://wa.me/5511999999999?text=Olá! Sou dono de clínica e gostaria de conhecer os planos especiais do SomosFisio.', '_blank')}
+            onClick={() => window.open('https://wa.me/5585988335991?text=Olá! Sou dono de clínica e gostaria de conhecer os planos especiais do SomosFisio.', '_blank')}
             className="group bg-white text-blue-600 px-12 py-6 rounded-2xl font-black text-xl transition-all transform hover:scale-105 active:scale-95 shadow-2xl flex items-center gap-4"
           >
             FALAR COM ESPECIALISTA
