@@ -21,7 +21,8 @@ import {
   Sparkles,
   Zap,
   TrendingUp,
-  Globe
+  Globe,
+  Instagram
 } from 'lucide-react';
 
 // --- Sub-components ---
@@ -64,6 +65,15 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center space-x-6">
+            <a 
+              href="https://www.instagram.com/somosfisioapp/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-slate-400 hover:text-pink-600 transition-colors p-2"
+              title="Siga-nos no Instagram"
+            >
+              <Instagram size={20} />
+            </a>
             <Link to="/login" className="text-slate-700 hover:text-blue-600 font-bold text-sm">
               Entrar
             </Link>
@@ -100,9 +110,20 @@ const Navbar = () => {
             </a>
           ))}
           <div className="pt-4 flex flex-col space-y-4">
-            <Link to="/login" onClick={() => setIsOpen(false)} className="text-center font-bold text-slate-600">
-              Entrar
-            </Link>
+            <div className="flex items-center justify-between">
+              <Link to="/login" onClick={() => setIsOpen(false)} className="font-bold text-slate-600">
+                Entrar
+              </Link>
+              <a 
+                href="https://www.instagram.com/somosfisioapp/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 font-bold text-pink-600"
+              >
+                <Instagram size={20} />
+                Instagram
+              </a>
+            </div>
             <button
               onClick={() => { setIsOpen(false); window.location.href = 'https://pay.kiwify.com.br/SEU_ID_AQUI'; }}
               className="bg-blue-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
@@ -464,7 +485,16 @@ const Footer = () => {
           <p className="text-slate-500 text-sm font-bold">
             © {new Date().getFullYear()} SomosFisio — Made with passion for health.
           </p>
-          <div className="flex gap-8 text-xs font-black uppercase tracking-widest text-slate-400">
+          <div className="flex gap-6 text-xs font-black uppercase tracking-widest text-slate-400">
+            <a 
+              href="https://www.instagram.com/somosfisioapp/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-pink-500 transition-colors flex items-center gap-2"
+            >
+              <Instagram size={16} />
+              Instagram
+            </a>
             <a href="#" className="hover:text-white transition-colors">Termos</a>
             <a href="#" className="hover:text-white transition-colors">Privacidade</a>
           </div>
