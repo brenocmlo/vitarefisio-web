@@ -251,12 +251,43 @@ const ForWhom = () => {
 
 const Features = () => {
   const features = [
-    { title: 'Prontuário Eletrônico', icon: <FileText />, color: 'bg-blue-500' },
-    { title: 'Avaliações', icon: <ClipboardCheck />, color: 'bg-indigo-500' },
-    { title: 'Controle Financeiro', icon: <TrendingUp />, color: 'bg-emerald-500' },
-    { title: 'Agendamento Online', icon: <Calendar />, color: 'bg-rose-500' },
-    { title: 'App do Paciente', icon: <Smartphone />, color: 'bg-amber-500' },
-    { title: 'Relatórios Gerenciais', icon: <Globe />, color: 'bg-violet-500' },
+    { 
+      title: 'Agenda Inteligente', 
+      desc: 'Sincronização em tempo real com Google Calendar e lembretes automáticos via WhatsApp que reduzem faltas em até 45%.',
+      icon: <Calendar />, 
+      color: 'bg-blue-500',
+      size: 'md:col-span-2 md:row-span-1',
+      extra: <div className="mt-4 flex gap-2 overflow-hidden opacity-50"><div className="h-2 w-12 bg-blue-400 rounded-full"></div><div className="h-2 w-20 bg-blue-400/50 rounded-full"></div></div>
+    },
+    { 
+      title: 'Prontuário Digital', 
+      desc: 'Evoluções rápidas e seguras. Elimine o papel e tenha o histórico clínico na palma da mão.',
+      icon: <FileText />, 
+      color: 'bg-indigo-500',
+      size: 'md:col-span-1 md:row-span-2',
+      extra: <div className="mt-8 space-y-2 opacity-30"><div className="h-1 w-full bg-indigo-400 rounded"></div><div className="h-1 w-2/3 bg-indigo-400 rounded"></div><div className="h-1 w-full bg-indigo-400 rounded"></div></div>
+    },
+    { 
+      title: 'Financeiro Total', 
+      desc: 'Gestão de faturamento, pacotes e sessões de forma automatizada.',
+      icon: <TrendingUp />, 
+      color: 'bg-emerald-500',
+      size: 'md:col-span-1 md:row-span-1'
+    },
+    { 
+      title: 'App do Paciente', 
+      desc: 'Seu paciente acompanha a evolução e as sessões restantes pelo próprio celular.',
+      icon: <Smartphone />, 
+      color: 'bg-amber-500',
+      size: 'md:col-span-1 md:row-span-1'
+    },
+    { 
+      title: 'Gestão de Clínicas', 
+      desc: 'Controle de equipe, comissões e múltiplos fisioterapeutas em um único workspace.',
+      icon: <Globe />, 
+      color: 'bg-violet-500',
+      size: 'md:col-span-1 md:row-span-1'
+    },
   ];
 
   return (
@@ -264,27 +295,34 @@ const Features = () => {
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex flex-col lg:flex-row items-end justify-between mb-20 gap-8">
-          <div className="max-w-2xl">
-            <h2 className="text-4xl md:text-6xl font-black tracking-tight mb-6 leading-[0.95]">
-              Funcionalidades que <br /> <span className="text-blue-500 text-glow">mudam o jogo.</span>
-            </h2>
-            <p className="text-slate-400 text-xl font-medium">
-              Tudo o que você precisa para gerir sua carreira em um só lugar.
-            </p>
-          </div>
+        <div className="max-w-2xl mb-20">
+          <h2 className="text-4xl md:text-6xl font-black tracking-tight mb-6 leading-[0.95]">
+            Funcionalidades que <br /> <span className="text-blue-500 text-glow">mudam o jogo.</span>
+          </h2>
+          <p className="text-slate-400 text-xl font-medium">
+            Tudo o que você precisa para gerir sua carreira em um só lugar.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[240px]">
           {features.map((feat, idx) => (
-            <div key={idx} className={`reveal-hidden reveal-delay-${(idx % 3) + 1} group p-8 rounded-[32px] bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300`}>
-              <div className={`w-12 h-12 rounded-xl ${feat.color} flex items-center justify-center mb-6 shadow-lg shadow-black/20 group-hover:scale-110 transition-transform`}>
-                {React.cloneElement(feat.icon as React.ReactElement<any>, { size: 24, className: "text-white" })}
+            <div 
+              key={idx} 
+              className={`reveal-hidden reveal-delay-${(idx % 3) + 1} group p-8 rounded-[32px] bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 flex flex-col justify-between overflow-hidden relative ${feat.size || ''}`}
+            >
+              <div>
+                <div className={`w-12 h-12 rounded-xl ${feat.color} flex items-center justify-center mb-6 shadow-lg shadow-black/20 group-hover:scale-110 transition-transform`}>
+                  {React.cloneElement(feat.icon as React.ReactElement<any>, { size: 24, className: "text-white" })}
+                </div>
+                <h3 className="text-xl font-bold mb-3 tracking-tight">{feat.title}</h3>
+                <p className="text-slate-400 text-sm leading-relaxed font-medium line-clamp-3">
+                  {feat.desc}
+                </p>
               </div>
-              <h3 className="text-xl font-bold mb-3 tracking-tight">{feat.title}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed font-medium">
-                Sincronização em tempo real e acesso de qualquer dispositivo.
-              </p>
+              {feat.extra}
+              
+              {/* Efeito de luz sutil no hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
             </div>
           ))}
         </div>
