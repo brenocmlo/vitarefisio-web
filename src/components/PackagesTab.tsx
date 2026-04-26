@@ -17,9 +17,10 @@ interface Pacote {
 interface PackagesTabProps {
   pacienteId: string;
   pacienteNome?: string;
+  onRefresh?: () => void;
 }
 
-export function PackagesTab({ pacienteId, pacienteNome }: PackagesTabProps) {
+export function PackagesTab({ pacienteId, pacienteNome, onRefresh }: PackagesTabProps) {
   const [pacotes, setPacotes] = useState<Pacote[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -186,6 +187,7 @@ export function PackagesTab({ pacienteId, pacienteNome }: PackagesTabProps) {
         onSuccess={() => {
           setIsModalOpen(false);
           loadPacotes();
+          if (onRefresh) onRefresh();
         }}
         defaultPacienteId={pacienteId}
         defaultIsPacote={true}

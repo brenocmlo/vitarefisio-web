@@ -217,7 +217,7 @@ export function MedicalRecord() {
         </div>
       )}
 
-      {activeTab === 'pacotes' && id && <PackagesTab pacienteId={id} pacienteNome={patient?.nome} />}
+      {activeTab === 'pacotes' && id && <PackagesTab pacienteId={id} pacienteNome={patient?.nome} onRefresh={loadData} />}
 
       {activeTab === 'anexos' && id && <AttachmentsTab pacienteId={id} />}
 
