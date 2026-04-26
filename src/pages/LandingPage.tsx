@@ -22,14 +22,17 @@ import {
   Zap,
   TrendingUp,
   Globe,
-  Instagram
+  Instagram,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 // --- Sub-components ---
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const navLinks = [
     { name: 'Sobre', href: '#sobre' },
@@ -40,14 +43,14 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-white/70 backdrop-blur-xl z-50 border-b border-slate-200/50">
+    <nav className="fixed top-0 left-0 w-full bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl z-50 border-b border-slate-200/50 dark:border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           <Link to="/" className="flex-shrink-0 flex items-center group">
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center mr-3 group-hover:rotate-12 transition-transform">
               <Stethoscope className="text-white" size={24} />
             </div>
-            <span className="text-slate-900 font-extrabold text-2xl tracking-tighter">
+            <span className="text-slate-900 dark:text-white font-extrabold text-2xl tracking-tighter">
               somos<span className="text-blue-600">fisio</span>
             </span>
           </Link>
@@ -57,7 +60,7 @@ const Navbar = () => {
               <a
                 key={link.name}
                 href={link.href}
-                className="text-slate-500 hover:text-blue-600 font-semibold transition-all text-sm tracking-tight"
+                className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-semibold transition-all text-sm tracking-tight"
               >
                 {link.name}
               </a>
@@ -65,6 +68,13 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center space-x-6">
+            <button
+              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              className="p-2 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 transition-colors"
+              title="Alternar tema"
+            >
+              {resolvedTheme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
             <a 
               href="https://www.instagram.com/somosfisioapp/" 
               target="_blank" 
@@ -74,21 +84,27 @@ const Navbar = () => {
             >
               <Instagram size={20} />
             </a>
-            <Link to="/login" className="text-slate-700 hover:text-blue-600 font-bold text-sm">
+            <Link to="/login" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-bold text-sm">
               Entrar
             </Link>
             <button
               onClick={() => window.location.href = 'https://pay.kiwify.com.br/SEU_ID_AQUI'}
-              className="bg-slate-900 hover:bg-blue-600 text-white px-7 py-3 rounded-full font-bold text-sm transition-all shadow-xl shadow-slate-200 hover:shadow-blue-200 active:scale-95"
+              className="bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-blue-600 dark:hover:bg-blue-500 dark:hover:text-white text-white px-7 py-3 rounded-full font-bold text-sm transition-all shadow-xl shadow-slate-200 dark:shadow-none hover:shadow-blue-200 active:scale-95"
             >
               EXPERIMENTE GRÁTIS
             </button>
           </div>
 
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-4">
+            <button
+              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              className="p-2 text-slate-500 dark:text-slate-400"
+            >
+              {resolvedTheme === 'dark' ? <Sun size={22} /> : <Moon size={22} />}
+            </button>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-slate-900 focus:outline-none"
+              className="text-slate-900 dark:text-white focus:outline-none"
             >
               {isOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
@@ -98,20 +114,20 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 p-6 space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-white/5 p-6 space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
           {navLinks.map((link) => (
             <a
               key={link.name}
               href={link.href}
               onClick={() => setIsOpen(false)}
-              className="block text-lg font-bold text-slate-800"
+              className="block text-lg font-bold text-slate-800 dark:text-white"
             >
               {link.name}
             </a>
           ))}
           <div className="pt-4 flex flex-col space-y-4">
             <div className="flex items-center justify-between">
-              <Link to="/login" onClick={() => setIsOpen(false)} className="font-bold text-slate-600">
+              <Link to="/login" onClick={() => setIsOpen(false)} className="font-bold text-slate-600 dark:text-slate-400">
                 Entrar
               </Link>
               <a 
@@ -138,24 +154,24 @@ const Navbar = () => {
 };
 
 const Hero = () => (
-  <section className="relative pt-40 pb-24 lg:pt-56 lg:pb-40 overflow-hidden">
+  <section className="relative pt-40 pb-24 lg:pt-56 lg:pb-40 overflow-hidden dark:bg-slate-950 transition-colors duration-500">
     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10">
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100/50 rounded-full blur-[120px] animate-pulse"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-100/50 rounded-full blur-[120px]"></div>
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100/50 dark:bg-blue-900/20 rounded-full blur-[120px] animate-pulse"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-100/50 dark:bg-indigo-900/20 rounded-full blur-[120px]"></div>
     </div>
 
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 font-bold text-xs uppercase tracking-widest mb-10 border border-blue-100 animate-bounce">
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 font-bold text-xs uppercase tracking-widest mb-10 border border-blue-100 dark:border-blue-500/20 animate-bounce">
         <Sparkles size={14} />
         quer profissionalizar sua clínica?
       </div>
       
-      <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-slate-900 tracking-tighter leading-[0.9] mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-both">
+      <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9] mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-both">
         Gestão clínica <br />
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">descomplicada.</span>
       </h1>
       
-      <p className="max-w-3xl mx-auto text-xl md:text-2xl text-slate-500 font-medium leading-relaxed mb-12 animate-in fade-in slide-in-from-bottom-12 duration-1000 fill-mode-both">
+      <p className="max-w-3xl mx-auto text-xl md:text-2xl text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-12 animate-in fade-in slide-in-from-bottom-12 duration-1000 fill-mode-both">
         Elimine o papel, organize seus pacientes e tenha controle total do financeiro com o sistema mais moderno do Brasil.
       </p>
       
@@ -170,17 +186,17 @@ const Hero = () => (
         </button>
         
         <div className="flex flex-col items-start gap-1">
-          <div className="flex items-center gap-2 text-slate-900 font-bold uppercase text-[10px] tracking-[0.2em]">
+          <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold uppercase text-[10px] tracking-[0.2em]">
             <Zap size={14} className="text-yellow-500" />
             SISTEMA COMPLETO + APP
           </div>
           <div className="flex -space-x-2">
             {[1,2,3,4].map(i => (
-              <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold">
+              <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-800 bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300">
                 U{i}
               </div>
             ))}
-            <div className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold flex items-center border border-blue-100 ml-2">
+            <div className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-bold flex items-center border border-blue-100 dark:border-blue-800/50 ml-2">
               +1.200 fisioterapeutas
             </div>
           </div>
@@ -199,10 +215,10 @@ const ForWhom = () => {
   ];
 
   return (
-    <section id="sobre" className="py-32 bg-white relative">
+    <section id="sobre" className="py-32 bg-white dark:bg-slate-950 relative transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
+          <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
             SomosFisio é para você?
           </h2>
           <div className="h-1.5 w-24 bg-blue-600 mx-auto rounded-full"></div>
@@ -212,17 +228,17 @@ const ForWhom = () => {
           {cards.map((card, idx) => (
             <div 
               key={idx} 
-              className={`reveal-hidden reveal-delay-${(idx % 4) + 1} group p-10 rounded-[40px] bg-slate-50 hover:bg-white border border-transparent hover:border-slate-100 transition-all duration-500 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] flex flex-col`}
+              className={`reveal-hidden reveal-delay-${(idx % 4) + 1} group p-10 rounded-[40px] bg-slate-50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-900 border border-transparent hover:border-slate-100 dark:hover:border-white/10 transition-all duration-500 hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] flex flex-col`}
             >
-              <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-8 group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-500">
+              <div className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center mb-8 group-hover:bg-blue-600 group-hover:scale-110 transition-all duration-500">
                 {React.cloneElement(card.icon as React.ReactElement<any>, { 
                   className: "w-8 h-8 text-blue-600 group-hover:text-white transition-colors" 
                 })}
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight group-hover:text-blue-600 transition-colors">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight group-hover:text-blue-600 transition-colors">
                 {card.title}
               </h3>
-              <p className="text-slate-500 font-medium text-sm leading-relaxed">
+              <p className="text-slate-500 dark:text-slate-400 font-medium text-sm leading-relaxed">
                 {card.desc}
               </p>
             </div>
@@ -244,7 +260,7 @@ const Features = () => {
   ];
 
   return (
-    <section id="funcionalidades" className="py-32 bg-slate-900 text-white relative overflow-hidden">
+    <section id="funcionalidades" className="py-32 bg-slate-900 dark:bg-slate-950 text-white relative overflow-hidden transition-colors duration-500">
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -266,7 +282,7 @@ const Features = () => {
                 {React.cloneElement(feat.icon as React.ReactElement<any>, { size: 24, className: "text-white" })}
               </div>
               <h3 className="text-xl font-bold mb-3 tracking-tight">{feat.title}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed font-medium">
+              <p className="text-slate-400 text-sm leading-relaxed font-medium">
                 Sincronização em tempo real e acesso de qualquer dispositivo.
               </p>
             </div>
@@ -278,7 +294,6 @@ const Features = () => {
 };
 
 const Pricing = () => {
-  const navigate = useNavigate();
   const plans = [
     {
       name: 'MENSAL',
@@ -304,16 +319,15 @@ const Pricing = () => {
   ];
 
   return (
-    <section id="planos" className="py-32 bg-slate-50 overflow-hidden relative">
+    <section id="planos" className="py-32 bg-slate-50 dark:bg-slate-900 overflow-hidden relative transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-        <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
+        <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
           Planos para Fisioterapeutas Autônomos
         </h2>
-        <p className="text-slate-500 font-medium text-lg mb-20 max-w-2xl mx-auto">
+        <p className="text-slate-500 dark:text-slate-400 font-medium text-lg mb-20 max-w-2xl mx-auto">
           A liberdade que você precisa com o controle que sua carreira merece. Teste por 30 dias sem compromisso.
         </p>
 
-        {/* Efeito interativo solicitado: ao passar o mouse em um, os outros diminuem */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center group/pricing-grid">
           {plans.map((plan, idx) => (
             <div 
@@ -323,7 +337,7 @@ const Pricing = () => {
                 hover:!scale-[1.05] hover:!opacity-100 hover:z-20 
                 ${plan.isFeatured 
                   ? 'bg-blue-600 text-white shadow-[0_40px_100px_-20px_rgba(37,99,235,0.4)]' 
-                  : 'bg-white text-slate-900 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.06)]'
+                  : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.06)] border border-transparent dark:border-white/5'
                 }`}
             >
               {plan.tag && (
@@ -376,7 +390,7 @@ const Pricing = () => {
 
 const ClinicaCTA = () => {
   return (
-    <section className="py-24 bg-blue-600 relative overflow-hidden">
+    <section className="py-24 bg-blue-600 dark:bg-blue-700 relative overflow-hidden transition-colors duration-500">
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)] pointer-events-none"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-[48px] p-8 md:p-16 flex flex-col lg:flex-row items-center justify-between gap-12 shadow-2xl">
@@ -418,28 +432,28 @@ const FAQ = () => {
   ];
 
   return (
-    <section id="faq" className="py-32 bg-white">
+    <section id="faq" className="py-32 bg-white dark:bg-slate-950 transition-colors duration-500">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-4xl md:text-5xl font-black text-center text-slate-900 tracking-tight mb-20">
+        <h2 className="text-4xl md:text-5xl font-black text-center text-slate-900 dark:text-white tracking-tight mb-20">
           Dúvidas comuns.
         </h2>
         <div className="space-y-4">
           {questions.map((item, idx) => (
             <div 
               key={idx} 
-              className={`rounded-3xl border transition-all duration-300 ${openIndex === idx ? 'border-blue-200 bg-blue-50/30' : 'border-slate-100 bg-white'}`}
+              className={`rounded-3xl border transition-all duration-300 ${openIndex === idx ? 'border-blue-200 dark:border-blue-900 bg-blue-50/30 dark:bg-blue-900/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900'}`}
             >
               <button
                 onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
                 className="w-full flex items-center justify-between p-8 text-left"
               >
-                <span className="font-bold text-xl text-slate-900 tracking-tight">{item.q}</span>
-                <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${openIndex === idx ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 text-slate-400'}`}>
+                <span className="font-bold text-xl text-slate-900 dark:text-white tracking-tight">{item.q}</span>
+                <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all ${openIndex === idx ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 dark:border-white/20 text-slate-400'}`}>
                   {openIndex === idx ? <X size={14} /> : <Plus size={14} />}
                 </div>
               </button>
               {openIndex === idx && (
-                <div className="px-8 pb-8 text-slate-500 font-medium text-lg leading-relaxed animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="px-8 pb-8 text-slate-500 dark:text-slate-400 font-medium text-lg leading-relaxed animate-in fade-in slide-in-from-top-2 duration-500">
                   {item.a}
                 </div>
               )}
@@ -452,9 +466,8 @@ const FAQ = () => {
 };
 
 const Footer = () => {
-  const navigate = useNavigate();
   return (
-    <footer className="bg-slate-900 pt-32 pb-16 text-white overflow-hidden relative">
+    <footer className="bg-slate-900 dark:bg-slate-950 pt-32 pb-16 text-white overflow-hidden relative transition-colors duration-500">
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[300px] bg-blue-600/20 blur-[120px] rounded-full -z-10"></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -464,11 +477,11 @@ const Footer = () => {
           </h2>
           <button
             onClick={() => window.location.href = 'https://pay.kiwify.com.br/SEU_ID_AQUI'}
-            className="bg-white text-slate-900 px-16 py-8 rounded-[32px] font-black text-2xl transition-all transform hover:scale-110 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:shadow-white/20 mb-12"
+            className="bg-white dark:bg-blue-600 text-slate-900 dark:text-white px-16 py-8 rounded-[32px] font-black text-2xl transition-all transform hover:scale-110 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:shadow-white/20 mb-12"
           >
             QUERO 30 DIAS GRÁTIS
           </button>
-          <div className="flex flex-wrap justify-center gap-10 text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">
+          <div className="flex flex-wrap justify-center gap-10 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-[0.2em]">
             <div className="flex items-center gap-2 underline decoration-blue-500 decoration-2 underline-offset-4">Sem cartão</div>
             <div className="flex items-center gap-2 underline decoration-blue-500 decoration-2 underline-offset-4">Sem contrato</div>
             <div className="flex items-center gap-2 underline decoration-blue-500 decoration-2 underline-offset-4">Suporte VIP</div>
@@ -485,7 +498,7 @@ const Footer = () => {
           <p className="text-slate-500 text-sm font-bold">
             © {new Date().getFullYear()} SomosFisio — Made with passion for health.
           </p>
-          <div className="flex gap-6 text-xs font-black uppercase tracking-widest text-slate-400">
+          <div className="flex gap-6 text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
             <a 
               href="https://www.instagram.com/somosfisioapp/" 
               target="_blank" 
@@ -528,7 +541,7 @@ const LandingPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 selection:bg-blue-600 selection:text-white scroll-smooth">
+    <div className="min-h-screen bg-white dark:bg-slate-950 font-sans text-slate-900 dark:text-white selection:bg-blue-600 selection:text-white scroll-smooth transition-colors duration-500">
       <Navbar />
       <main>
         <Hero />
