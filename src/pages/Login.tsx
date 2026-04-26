@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '../hooks/useAuth';
-import { ArrowRight, Loader2, Moon, ShieldCheck, Sparkles, Stethoscope, Sun } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Loader2, Moon, ShieldCheck, Sparkles, Stethoscope, Sun } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
@@ -25,6 +25,7 @@ export function Login() {
   const { resolvedTheme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   const {
@@ -152,12 +153,21 @@ export function Login() {
                       Esqueci minha senha
                     </Link>
                   </div>
-                  <input
-                    {...register('password')}
-                    type="password"
-                    placeholder="••••••••"
-                    className="input-shell"
-                  />
+                  <div className="relative">
+                    <input
+                      {...register('password')}
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      className="input-shell pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-sky-600 dark:hover:text-sky-400"
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
                   {errors.password && <span className="helper-text text-red-500">{errors.password.message}</span>}
                 </div>
 
