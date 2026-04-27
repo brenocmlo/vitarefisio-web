@@ -20,7 +20,10 @@ export function AppointmentFormModal({ isOpen, onClose, onSuccess, selectedDate,
     if (isOpen) {
       setFormData({ paciente_id: '', hora: defaultHour || '08:00', observacoes: '' });
       setFormError('');
-      api.get('/pacientes').then((res) => setPatients(res.data));
+      api.get('/pacientes').then((res) => {
+        const patientsData = Array.isArray(res.data) ? res.data : res.data.data;
+        setPatients(Array.isArray(patientsData) ? patientsData : []);
+      });
     }
   }, [isOpen, defaultHour]);
 

@@ -66,7 +66,8 @@ export function Agenda() {
         params.ano = format(selectedDate, 'yyyy');
       }
       const response = await api.get('/agendamentos', { params });
-      setAppointments(response.data.filter((app: any) => app.status !== 'cancelado'));
+      const data = Array.isArray(response.data) ? response.data : [];
+      setAppointments(data.filter((app: any) => app.status !== 'cancelado'));
     } catch (error) {
       console.error('Erro ao carregar agendamentos');
     }

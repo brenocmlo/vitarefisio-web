@@ -50,7 +50,10 @@ export function PaymentFormModal({
 
   useEffect(() => {
     if (isOpen) {
-      api.get('/pacientes').then((response) => setPatients(response.data));
+      api.get('/pacientes').then((response) => {
+        const patientsData = Array.isArray(response.data) ? response.data : response.data.data;
+        setPatients(Array.isArray(patientsData) ? patientsData : []);
+      });
       setFormData({
         paciente_id: defaultPacienteId || '',
         valor: '',
