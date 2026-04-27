@@ -19,19 +19,27 @@ interface Patient {
 export function Patients() {
   const { user } = useAuth();
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [totalPatients, setTotalPatients] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [deletingPatientId, setDeletingPatientId] = useState<number | null>(null);
 
-  async function loadPatients() {
+  async function loadPatients(currentPage = 1, search = '') {
     try {
       setLoading(true);
       const response = await api.get('/pacientes', {
-        params: { clinica_id: user?.clinica_id },
+        params: { 
+          clinica_id: user?.clinica_id,
+          page: currentPage,
+          search: search || undefined,
+          limit: 20
+        },
       });
-      setPatients(response.data);
+      setPatients(response.data.data);
+      setTotalPatients(response.data.total);
     } catch (error) {
       console.error('Erro ao carregar pacientes', error);
     } finally {
@@ -39,9 +47,22 @@ export function Patients() {
     }
   }
 
+  // Debounce search
   useEffect(() => {
-    loadPatients();
-  }, [user?.clinica_id]);
+    const timer = setTimeout(() => {
+      setPage(1);
+      loadPatients(1, searchTerm);
+    }, 500);
+ 
+    return () => clearTimeout(timer);
+  }, [searchTerm, user?.clinica_id]);
+
+  // Handle page change
+  useEffect(() => {
+    if (page > 1) {
+      loadPatients(page, searchTerm);
+    }
+  }, [page]);
 
   useEffect(() => {
     function handleOutsideClick() {
@@ -57,14 +78,6 @@ export function Patients() {
     };
   }, [openMenuId]);
 
-  const filteredPatients = useMemo(
-    () =>
-      patients.filter(
-        (patient) =>
-          patient.nome.toLowerCase().includes(searchTerm.toLowerCase()) || patient.cpf.includes(searchTerm)
-      ),
-    [patients, searchTerm]
-  );
 
   async function handleDeletePatient(patient: Patient) {
     const confirmed = window.confirm(`Deseja remover o paciente "${patient.nome}"? Esta ação não pode ser desfeita.`);
@@ -123,10 +136,10 @@ export function Patients() {
       <section className="space-y-4 lg:hidden">
         {loading ? (
           <div className="surface-panel py-10 text-center text-sm text-slate-500">Carregando pacientes...</div>
-        ) : filteredPatients.length === 0 ? (
+        ) : patients.length === 0 ? (
           <div className="surface-panel py-10 text-center text-sm text-slate-500">Nenhum paciente encontrado.</div>
         ) : (
-          filteredPatients.map((patient) => (
+          patients.map((patient) => (
             <div key={patient.id} className="surface-panel p-4">
               <div className="flex items-start justify-between">
                 <div className="min-w-0">
@@ -223,11 +236,11 @@ export function Patients() {
             <tbody className="divide-y divide-slate-200/70 dark:divide-slate-800">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-14 text-center text-sm text-slate-500 dark:text-slate-400">
+                  <td colSpan={6} className="px-6 py-14 text-center text-sm text-slate-500 dark:text-slate-400">
                     Carregando pacientes...
                   </td>
                 </tr>
-              ) : filteredPatients.length === 0 ? (
+              ) : patients.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-16">
                     <div className="mx-auto flex max-w-md flex-col items-center text-center">
@@ -242,7 +255,7 @@ export function Patients() {
                   </td>
                 </tr>
               ) : (
-                filteredPatients.map((patient) => (
+                patients.map((patient) => (
                   <tr key={patient.id} className="table-row">
                     <td className="px-6 py-4">
                       <div>
@@ -337,6 +350,32 @@ export function Patients() {
               )}
             </tbody>
           </table>
+        </div>
+ 
+        {/* Pagination Controls */}
+        <div className="mt-6 flex items-center justify-between px-2">
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+            Total: {totalPatients} pacientes
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1 || loading}
+              className="secondary-button py-2 px-4 text-xs disabled:opacity-30"
+            >
+              Anterior
+            </button>
+            <span className="flex items-center px-3 text-xs font-black text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+              {page}
+            </span>
+            <button
+              onClick={() => setPage(p => p + 1)}
+              disabled={patients.length < 20 || loading}
+              className="secondary-button py-2 px-4 text-xs disabled:opacity-30"
+            >
+              Próximo
+            </button>
+          </div>
         </div>
       </section>
 
