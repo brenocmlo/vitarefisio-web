@@ -144,7 +144,7 @@ const Navbar = () => {
               onClick={() => { setIsOpen(false); window.location.href = 'https://pay.kiwify.com.br/SEU_ID_AQUI'; }}
               className="bg-blue-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
             >
-              QUERO 30 DIAS GRÁTIS
+              TESTE GRÁTIS DURANTE 15 DIAS
             </button>
           </div>
         </div>
@@ -335,22 +335,25 @@ const Pricing = () => {
   const plans = [
     {
       name: 'MENSAL',
-      price: '19,90',
-      subPrice: 'depois R$ 59,90/mês',
-      period: '1º mês',
+      price: '69,90',
+      period: '/mês',
       isFeatured: false,
     },
     {
-      name: 'TRIMESTRAL',
-      price: '47,90',
+      name: 'SEMESTRAL',
+      price: '59,90',
       period: '/mês',
+      totalPrice: '359,40',
+      discount: 'Economia de R$ 60,00',
       tag: 'Mais Escolhido',
       isFeatured: true,
     },
     {
       name: 'ANUAL',
-      price: '39,90',
+      price: '49,90',
       period: '/mês',
+      totalPrice: '598,80',
+      discount: 'Economia de R$ 240,00',
       tag: 'Economia Máxima',
       isFeatured: false,
     },
@@ -363,7 +366,7 @@ const Pricing = () => {
           Planos para Fisioterapeutas Autônomos
         </h2>
         <p className="text-slate-500 dark:text-slate-400 font-medium text-lg mb-20 max-w-2xl mx-auto">
-          A liberdade que você precisa com o controle que sua carreira merece. Teste por 30 dias sem compromisso.
+          A liberdade que você precisa com o controle que sua carreira merece. Teste por 15 dias sem compromisso.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center group/pricing-grid">
@@ -388,14 +391,27 @@ const Pricing = () => {
               
               <h3 className="text-sm font-black mb-10 opacity-70 uppercase tracking-[0.3em]">{plan.name}</h3>
               
-              <div className="mb-6 flex items-baseline justify-center gap-1">
+              <div className="mb-2 flex items-baseline justify-center gap-1">
                 <span className="text-2xl font-black opacity-60">R$</span>
                 <span className="text-7xl font-black tracking-tighter">{plan.price.split(',')[0]}</span>
                 <span className="text-2xl font-black">,{plan.price.split(',')[1]}</span>
                 <span className="text-lg opacity-60 font-bold ml-1">{plan.period}</span>
               </div>
               
-              {plan.subPrice && <p className="text-sm font-bold opacity-60 mb-10">{plan.subPrice}</p>}
+              <div className="min-h-[80px] mb-6">
+                {plan.totalPrice && (
+                  <p className="text-sm font-bold opacity-70 mb-2">Total de R$ {plan.totalPrice}</p>
+                )}
+                {plan.discount && (
+                  <div className="flex justify-center">
+                    <span className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider ${
+                      plan.isFeatured ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                    }`}>
+                      {plan.discount}
+                    </span>
+                  </div>
+                )}
+              </div>
               
               <div className="space-y-5 mb-12 flex-grow text-left">
                 {[1,2,3].map(i => (
@@ -416,7 +432,7 @@ const Pricing = () => {
                     : 'bg-slate-900 text-white hover:bg-blue-600 hover:shadow-blue-200'
                 }`}
               >
-                COMEÇAR TESTE GRÁTIS
+                TESTE GRÁTIS DURANTE 15 DIAS
               </button>
             </div>
           ))}
@@ -464,7 +480,7 @@ const FAQ = () => {
 
   const questions = [
     { q: 'O SomosFisio é difícil de aprender?', a: 'Não! É o sistema mais intuitivo do mercado. Em 15 minutos você já domina as funções principais.' },
-    { q: 'Como funcionam os 30 dias grátis?', a: 'Você cria sua conta, usa tudo e só paga se gostar. Não pedimos cartão de crédito para o teste.' },
+    { q: 'Como funcionam os 15 dias grátis?', a: 'Você cria sua conta, usa tudo e só paga se gostar. Não pedimos cartão de crédito para o teste.' },
     { q: 'Posso acessar pelo celular?', a: 'Com certeza! Temos um App dedicado e a versão web funciona perfeitamente em qualquer dispositivo.' },
     { q: 'O sistema envia WhatsApp automático?', a: 'Sim! Reduzimos as faltas em até 45% com lembretes inteligentes que confirmam a presença do seu paciente.' },
   ];
@@ -517,7 +533,7 @@ const Footer = () => {
             onClick={() => window.location.href = 'https://pay.kiwify.com.br/SEU_ID_AQUI'}
             className="bg-white dark:bg-blue-600 text-slate-900 dark:text-white px-16 py-8 rounded-[32px] font-black text-2xl transition-all transform hover:scale-110 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:shadow-white/20 mb-12"
           >
-            QUERO 30 DIAS GRÁTIS
+            TESTE GRÁTIS DURANTE 15 DIAS
           </button>
           <div className="flex flex-wrap justify-center gap-10 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-[0.2em]">
             <div className="flex items-center gap-2 underline decoration-blue-500 decoration-2 underline-offset-4">Sem cartão</div>
