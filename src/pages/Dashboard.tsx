@@ -20,6 +20,9 @@ import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { PatientFormModal } from '../components/PatientFormModal';
 import { AppointmentFormModal } from '../components/AppointmentFormModal';
+import { Skeleton } from '../components/Skeleton';
+import { motion } from 'framer-motion';
+import { AnimatedPage } from '../components/AnimatedPage';
 
 interface Metrics {
   hoje: {
@@ -94,58 +97,86 @@ export function Dashboard() {
 
   if (loading) {
     return (
-      <div className="surface-panel flex min-h-[260px] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-sky-200 border-t-sky-600 dark:border-slate-700 dark:border-t-sky-400" />
-          <p className="font-semibold text-slate-700 dark:text-slate-200">Carregando métricas da clínica...</p>
+      <div className="space-y-6">
+        <Skeleton className="h-[280px] w-full rounded-[40px]" />
+        
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-32 w-full rounded-[32px]" />
+          ))}
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+          <Skeleton className="h-[400px] w-full rounded-[32px]" />
+          <div className="space-y-6">
+            <Skeleton className="h-[240px] w-full rounded-[32px]" />
+            <Skeleton className="h-[160px] w-full rounded-[32px]" />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <section className="hero-panel relative overflow-hidden p-5 sm:p-8">
-        <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
-        <div className="grid gap-8 xl:grid-cols-[1.3fr_0.7fr]">
-          <div>
-            <div className="mb-4 inline-flex max-w-full items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-sky-50 sm:px-4 sm:text-xs sm:tracking-[0.22em]">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span className="truncate">{format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}</span>
+    <AnimatedPage>
+      <div className="space-y-6">
+        <section className="hero-panel relative overflow-hidden p-5 sm:p-8">
+          <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+          <div className="grid gap-8 xl:grid-cols-[1.3fr_0.7fr]">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="mb-4 inline-flex max-w-full items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-sky-50 sm:px-4 sm:text-xs sm:tracking-[0.22em]">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span className="truncate">{format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}</span>
+              </div>
+              <h1 className="font-display max-w-2xl text-2xl font-extrabold leading-tight sm:text-4xl">
+                Olá, {user?.nome}. Seu panorama clínico está pronto para hoje.
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-sky-50/90 sm:text-base sm:leading-7">
+                Veja rapidamente o ritmo da agenda, o comportamento financeiro e os próximos atendimentos para manter o dia fluindo com mais clareza.
+              </p>
+            </motion.div>
+
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-1">
+              {[
+                { onClick: () => setIsPatientModalOpen(true), icon: UserPlus, label: 'Novo paciente', desc: 'Cadastre e comece o acompanhamento.' },
+                { onClick: () => setIsAppointmentModalOpen(true), icon: CalendarPlus, label: 'Novo agendamento', desc: 'Abra um horário em poucos cliques.' },
+                { onClick: () => navigate('/financeiro'), icon: DollarSign, label: 'Lançar pagamento', desc: 'Registre sessões avulsas ou pacotes.' },
+              ].map((action, i) => (
+                <motion.button
+                  key={action.label}
+                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + i * 0.1 }}
+                  onClick={action.onClick}
+                  className="rounded-[24px] border border-white/15 bg-white/10 px-4 py-4 text-left sm:px-5"
+                >
+                  <action.icon className="mb-2 h-5 w-5 text-sky-100 sm:mb-3" />
+                  <p className="text-sm font-semibold sm:text-base">{action.label}</p>
+                  <p className="mt-1 text-xs text-sky-50/80 sm:text-sm">{action.desc}</p>
+                </motion.button>
+              ))}
             </div>
-            <h1 className="font-display max-w-2xl text-2xl font-extrabold leading-tight sm:text-4xl">
-              Olá, {user?.nome}. Seu panorama clínico está pronto para hoje.
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-sky-50/90 sm:text-base sm:leading-7">
-              Veja rapidamente o ritmo da agenda, o comportamento financeiro e os próximos atendimentos para manter o dia fluindo com mais clareza.
-            </p>
           </div>
+        </section>
 
-          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-1">
-            <button onClick={() => setIsPatientModalOpen(true)} className="rounded-[24px] border border-white/15 bg-white/10 px-4 py-4 text-left transition-colors hover:bg-white/15 sm:px-5">
-              <UserPlus className="mb-2 h-5 w-5 text-sky-100 sm:mb-3" />
-              <p className="text-sm font-semibold sm:text-base">Novo paciente</p>
-              <p className="mt-1 text-xs text-sky-50/80 sm:text-sm">Cadastre e comece o acompanhamento.</p>
-            </button>
-            <button onClick={() => setIsAppointmentModalOpen(true)} className="rounded-[24px] border border-white/15 bg-white/10 px-4 py-4 text-left transition-colors hover:bg-white/15 sm:px-5">
-              <CalendarPlus className="mb-2 h-5 w-5 text-sky-100 sm:mb-3" />
-              <p className="text-sm font-semibold sm:text-base">Novo agendamento</p>
-              <p className="mt-1 text-xs text-sky-50/80 sm:text-sm">Abra um horário em poucos cliques.</p>
-            </button>
-            <button onClick={() => navigate('/financeiro')} className="rounded-[24px] border border-white/15 bg-white/10 px-4 py-4 text-left transition-colors hover:bg-white/15 sm:grid-cols-1 sm:px-5">
-              <DollarSign className="mb-2 h-5 w-5 text-sky-100 sm:mb-3" />
-              <p className="text-sm font-semibold sm:text-base">Lançar pagamento</p>
-              <p className="mt-1 text-xs text-sky-50/80 sm:text-sm">Registre sessões avulsas ou pacotes.</p>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((item) => (
-          <MetricCard key={item.title} {...item} />
-        ))}
-      </section>
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {stats.map((item, i) => (
+            <motion.div
+              key={item.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + i * 0.05 }}
+            >
+              <MetricCard {...item} />
+            </motion.div>
+          ))}
+        </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="surface-panel overflow-hidden">
@@ -179,7 +210,7 @@ export function Dashboard() {
                   <div className="flex items-center gap-4">
                     <div className="flex h-14 w-14 flex-col items-center justify-center rounded-[22px] bg-sky-500/10 text-sky-700 dark:bg-sky-400/10 dark:text-sky-300">
                       <span className="text-[11px] font-bold uppercase tracking-[0.18em]">Hora</span>
-                      <span className="text-sm font-extrabold">{format(new Date(item.data_hora), 'HH:mm')}</span>
+                      <span className="text-sm font-extrabold">{item.data_hora.split(/[T ]/)[1]?.slice(0, 5)}</span>
                     </div>
                     <div>
                       <p className="text-base font-bold text-slate-900 dark:text-slate-100">
@@ -266,7 +297,8 @@ export function Dashboard() {
         }}
         selectedDate={new Date()}
       />
-    </div>
+      </div>
+    </AnimatedPage>
   );
 }
 

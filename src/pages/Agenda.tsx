@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import {
   ChevronLeft,
@@ -9,6 +10,7 @@ import {
   Clock3,
   XCircle,
   Loader2,
+  Layers,
 } from 'lucide-react';
 import {
   format,
@@ -29,16 +31,17 @@ import { ptBR } from 'date-fns/locale';
 import { AppointmentFormModal } from '../components/AppointmentFormModal';
 import { toast } from 'sonner';
 import { Link, useSearchParams } from 'react-router-dom';
+import { Skeleton } from '../components/Skeleton';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatedPage } from '../components/AnimatedPage';
 
 const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 export function Agenda() {
   const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedHour, setSelectedHour] = useState('08:00');
-  const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
@@ -56,51 +59,102 @@ export function Agenda() {
     return error?.response?.data?.message || error?.response?.data?.error || 'Não foi possível concluir a ação.';
   }
 
-  async function loadAppointments() {
-    try {
-      const params: any = {};
-      if (viewMode === 'day') {
-        params.data = format(selectedDate, 'yyyy-MM-dd');
-      } else {
-        params.mes = format(selectedDate, 'MM');
-        params.ano = format(selectedDate, 'yyyy');
-      }
-      const response = await api.get('/agendamentos', { params });
-      const data = Array.isArray(response.data) ? response.data : [];
-      setAppointments(data.filter((app: any) => app.status !== 'cancelado'));
-    } catch (error) {
-      console.error('Erro ao carregar agendamentos');
+  const queryClient = useQueryClient();
+
+  const queryKey = ['agendamentos', viewMode, format(selectedDate, 'yyyy-MM-dd')];
+
+  const fetchAppointments = async () => {
+    const params: any = {};
+    if (viewMode === 'day') {
+      params.data = format(selectedDate, 'yyyy-MM-dd');
+    } else {
+      params.mes = format(selectedDate, 'MM');
+      params.ano = format(selectedDate, 'yyyy');
     }
+    const response = await api.get('/agendamentos', { params });
+    const data = Array.isArray(response.data) ? response.data : [];
+    return data.filter((app: any) => app.status !== 'cancelado');
+  };
+
+  const { data: appointments = [], isLoading, refetch } = useQuery({
+    queryKey,
+    queryFn: fetchAppointments,
+  });
+
+  console.log('📅 Agenda appointments:', appointments);
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string }) => 
+      api.patch(`/agendamentos/${id}/status`, { status }),
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousData = queryClient.getQueryData(queryKey);
+      queryClient.setQueryData(queryKey, (old: any) => 
+        old?.map((app: any) => app.id === id ? { ...app, status } : app)
+      );
+      return { previousData };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData);
+      }
+      toast.error('Erro ao atualizar status.');
+    },
+    onSuccess: () => toast.success('Status atualizado!'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey })
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/agendamentos/${id}`),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousData = queryClient.getQueryData(queryKey);
+      queryClient.setQueryData(queryKey, (old: any) => 
+        old?.filter((app: any) => app.id !== id)
+      );
+      return { previousData };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData);
+      }
+      toast.error(getApiMessage(err));
+    },
+    onSuccess: () => toast.success('Agendamento cancelado com sucesso.'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey })
+  });
+
+  const calendarDays = useMemo(() => {
+    return eachDayOfInterval({
+      start: startOfWeek(startOfMonth(selectedDate)),
+      end: endOfWeek(endOfMonth(selectedDate)),
+    });
+  }, [selectedDate]);
+
+  const appointmentsByDay = useMemo(() => {
+    return calendarDays.reduce<Record<string, any[]>>((acc, day) => {
+      const key = format(day, 'yyyy-MM-dd');
+      acc[key] = appointments.filter((appointment: any) => {
+        // Utiliza o objeto Date para converter para o fuso horário local automaticamente
+        const appDate = new Date(appointment.data_hora);
+        const keyLocal = format(appDate, 'yyyy-MM-dd');
+        return keyLocal === key;
+      });
+      return acc;
+    }, {});
+  }, [appointments, calendarDays]);
+
+  function handleStatusChange(agendamentoId: number, novoStatus: string) {
+    statusMutation.mutate({ id: agendamentoId, status: novoStatus });
+  }
+
+  function handleCancelAppointment(agendamentoId: number) {
+    cancelMutation.mutate(agendamentoId);
   }
 
   function handleOpenModal(hora: string) {
     setSelectedHour(hora);
     setIsModalOpen(true);
-  }
-
-  async function handleStatusChange(agendamentoId: number, novoStatus: string) {
-    try {
-      await api.patch(`/agendamentos/${agendamentoId}/status`, { status: novoStatus });
-      setAppointments((prev) =>
-        prev.map((app) => (app.id === agendamentoId ? { ...app, status: novoStatus } : app))
-      );
-      toast.success('Status atualizado!');
-    } catch (error) {
-      toast.error('Erro ao atualizar status.');
-    }
-  }
-
-  async function handleCancelAppointment(agendamentoId: number) {
-    try {
-      setCancellingId(agendamentoId);
-      await api.delete(`/agendamentos/${agendamentoId}`);
-      setAppointments((prev) => prev.filter((app) => app.id !== agendamentoId && app.status !== 'cancelado'));
-      toast.success('Agendamento cancelado com sucesso.');
-    } catch (error: any) {
-      toast.error(getApiMessage(error));
-    } finally {
-      setCancellingId(null);
-    }
   }
 
   async function handleConnectGoogle() {
@@ -114,107 +168,125 @@ export function Agenda() {
     }
   }
 
-  useEffect(() => {
-    loadAppointments();
-  }, [selectedDate, viewMode]);
 
-  const calendarDays = eachDayOfInterval({
-    start: startOfWeek(startOfMonth(selectedDate)),
-    end: endOfWeek(endOfMonth(selectedDate)),
-  });
-
-  const appointmentsByDay = useMemo(() => {
-    return calendarDays.reduce<Record<string, any[]>>((acc, day) => {
-      const key = format(day, 'yyyy-MM-dd');
-      acc[key] = appointments.filter((appointment) => isSameDay(new Date(appointment.data_hora), day));
-      return acc;
-    }, {});
-  }, [appointments, calendarDays]);
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-[120px] w-full rounded-[32px]" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+            <Skeleton key={i} className="h-[220px] w-full rounded-[32px]" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <section className="surface-panel p-5 sm:p-6">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="surface-muted flex w-fit items-center gap-2 p-1.5">
-              <button
-                onClick={() => setViewMode('day')}
-                className={`rounded-2xl px-4 py-2.5 text-sm font-bold transition-all ${
-                  viewMode === 'day'
-                    ? 'bg-sky-500 text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)]'
-                    : 'text-slate-500 hover:bg-white/80 dark:text-slate-400 dark:hover:bg-slate-900/60'
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <LayoutGrid className="h-4 w-4" />
-                  Dia
-                </span>
-              </button>
-              <button
-                onClick={() => setViewMode('month')}
-                className={`rounded-2xl px-4 py-2.5 text-sm font-bold transition-all ${
-                  viewMode === 'month'
-                    ? 'bg-sky-500 text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)]'
-                    : 'text-slate-500 hover:bg-white/80 dark:text-slate-400 dark:hover:bg-slate-900/60'
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4" />
-                  Mês
-                </span>
-              </button>
-            </div>
-
-            <div>
-              <p className="eyebrow mb-2">Agenda terapêutica</p>
-              <div className="flex items-center gap-2">
+    <AnimatedPage>
+      <div className="space-y-6">
+        <section className="surface-panel p-5 sm:p-6">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center">
+              <div className="surface-muted flex w-fit items-center gap-2 p-1.5">
                 <button
-                  onClick={() => setSelectedDate(viewMode === 'day' ? subDays(selectedDate, 1) : subMonths(selectedDate, 1))}
-                  className="icon-button h-10 w-10"
+                  onClick={() => setViewMode('day')}
+                  className={`rounded-2xl px-4 py-2.5 text-sm font-bold transition-all ${
+                    viewMode === 'day'
+                      ? 'bg-sky-500 text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)]'
+                      : 'text-slate-500 hover:bg-white/80 dark:text-slate-400 dark:hover:bg-slate-900/60'
+                  }`}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <span className="flex items-center gap-2">
+                    <LayoutGrid className="h-4 w-4" />
+                    Dia
+                  </span>
                 </button>
-                <h2 className="font-display text-2xl font-extrabold capitalize text-slate-950 dark:text-slate-50">
-                  {format(selectedDate, viewMode === 'day' ? "dd 'de' MMMM" : 'MMMM yyyy', { locale: ptBR })}
-                </h2>
                 <button
-                  onClick={() => setSelectedDate(viewMode === 'day' ? addDays(selectedDate, 1) : addMonths(selectedDate, 1))}
-                  className="icon-button h-10 w-10"
+                  onClick={() => setViewMode('month')}
+                  className={`rounded-2xl px-4 py-2.5 text-sm font-bold transition-all ${
+                    viewMode === 'month'
+                      ? 'bg-sky-500 text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)]'
+                      : 'text-slate-500 hover:bg-white/80 dark:text-slate-400 dark:hover:bg-slate-900/60'
+                  }`}
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <span className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4" />
+                    Mês
+                  </span>
                 </button>
               </div>
+
+              <div>
+                <p className="eyebrow mb-2">Agenda terapêutica</p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setSelectedDate(viewMode === 'day' ? subDays(selectedDate, 1) : subMonths(selectedDate, 1))}
+                    className="icon-button h-10 w-10"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <h2 className="font-display text-2xl font-extrabold capitalize text-slate-950 dark:text-slate-50">
+                    {format(selectedDate, viewMode === 'day' ? "dd 'de' MMMM" : 'MMMM yyyy', { locale: ptBR })}
+                  </h2>
+                  <button
+                    onClick={() => setSelectedDate(viewMode === 'day' ? addDays(selectedDate, 1) : addMonths(selectedDate, 1))}
+                    className="icon-button h-10 w-10"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleConnectGoogle}
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-200 dark:hover:bg-slate-900"
+              >
+                <div className="flex h-5 w-5 items-center justify-center rounded-lg bg-red-500/10 p-0.5">
+                  <svg viewBox="0 0 24 24" className="h-full w-full fill-red-500">
+                    <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.92 3.32-2.12 4.52-1.2 1.2-2.84 2.12-5.72 2.12-4.2 0-7.76-3.48-7.76-7.84s3.56-7.84 7.76-7.84c2.28 0 3.92.88 5.16 2.08l2.32-2.32C18.16 3.08 15.68 2 12.48 2 6.44 2 1.56 6.88 1.56 12.92s4.88 10.92 10.92 10.92c3.28 0 5.76-1.08 7.64-3.08 1.92-1.92 2.52-4.64 2.52-6.92 0-.64-.04-1.24-.12-1.84h-10.04z" />
+                  </svg>
+                </div>
+                Google Calendar
+              </button>
+              <button onClick={() => handleOpenModal('08:00')} className="primary-button w-full sm:w-auto">
+                <Plus className="h-4 w-4" />
+                Novo agendamento
+              </button>
             </div>
           </div>
+        </section>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleConnectGoogle}
-              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-200 dark:hover:bg-slate-900"
-            >
-              <div className="flex h-5 w-5 items-center justify-center rounded-lg bg-red-500/10 p-0.5">
-                <svg viewBox="0 0 24 24" className="h-full w-full fill-red-500">
-                  <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.92 3.32-2.12 4.52-1.2 1.2-2.84 2.12-5.72 2.12-4.2 0-7.76-3.48-7.76-7.84s3.56-7.84 7.76-7.84c2.28 0 3.92.88 5.16 2.08l2.32-2.32C18.16 3.08 15.68 2 12.48 2 6.44 2 1.56 6.88 1.56 12.92s4.88 10.92 10.92 10.92c3.28 0 5.76-1.08 7.64-3.08 1.92-1.92 2.52-4.64 2.52-6.92 0-.64-.04-1.24-.12-1.84h-10.04z" />
-                </svg>
-              </div>
-              Google Calendar
-            </button>
-            <button onClick={() => handleOpenModal('08:00')} className="primary-button w-full sm:w-auto">
-              <Plus className="h-4 w-4" />
-              Novo agendamento
-            </button>
-          </div>
-        </div>
-      </section>
+        {viewMode === 'day' ? (
+          <motion.section
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.03 } }
+            }}
+            className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5"
+          >
+            {Array.from({ length: 11 }, (_, i) => i + 8).map((hour) => {
+              const timeString = `${hour.toString().padStart(2, '0')}:00`;
+              const slotApps = appointments.filter((appointment: any) => {
+                // Utiliza o objeto Date para extrair a hora local
+                if (!appointment.data_hora) return false;
+                const appDate = new Date(appointment.data_hora);
+                const appHour = appDate.getHours();
+                return appHour === hour;
+              });
 
-      {viewMode === 'day' ? (
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
-          {Array.from({ length: 11 }, (_, i) => i + 8).map((hour) => {
-            const timeString = `${hour.toString().padStart(2, '0')}:00`;
-            const slotApps = appointments.filter((appointment) => getHours(new Date(appointment.data_hora)) === hour);
-
-            return (
-              <div key={hour} className="surface-card min-h-[220px] p-4">
+              return (
+                <motion.div
+                  key={hour}
+                  variants={{
+                    hidden: { opacity: 0, y: 10 },
+                    visible: { opacity: 1, y: 0 }
+                  }}
+                  className="surface-card min-h-[220px] p-4"
+                >
                 <div className="mb-4 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Horário</p>
@@ -227,7 +299,7 @@ export function Agenda() {
 
                 {slotApps.length > 0 ? (
                   <div className="space-y-3">
-                    {slotApps.map((app) => {
+                    {slotApps.map((app: any) => {
                       const isDone = app.status === 'realizado';
                       const statusStyles = isDone
                         ? 'border-emerald-300/60 bg-emerald-500/10 dark:border-emerald-400/20 dark:bg-emerald-400/10'
@@ -235,6 +307,12 @@ export function Agenda() {
 
                       return (
                         <div key={app.id} className={`rounded-[22px] border p-4 ${statusStyles}`}>
+                          {app.pacote_paciente_id && (
+                            <div className="mb-2 flex items-center gap-1.5 rounded-lg bg-violet-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-violet-700 dark:bg-violet-400/10 dark:text-violet-300">
+                              <Layers size={10} />
+                              Sessão via Pacote
+                            </div>
+                          )}
                           <Link
                             to={`/pacientes/${app.paciente_id}/prontuario`}
                             className="block text-sm font-bold text-slate-900 hover:text-sky-700 dark:text-slate-100 dark:hover:text-sky-300"
@@ -279,10 +357,10 @@ export function Agenda() {
                             <button
                               type="button"
                               onClick={() => handleCancelAppointment(app.id)}
-                              disabled={cancellingId === app.id}
+                              disabled={cancelMutation.isPending}
                               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-3 py-2.5 text-center text-xs font-bold text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-200 dark:hover:bg-red-400/15"
                             >
-                              {cancellingId === app.id ? (
+                              {cancelMutation.isPending && cancelMutation.variables === app.id ? (
                                 <>
                                   <Loader2 className="h-4 w-4 animate-spin" />
                                   Cancelando...
@@ -308,12 +386,13 @@ export function Agenda() {
                     <span className="text-sm font-semibold">Adicionar encaixe</span>
                   </button>
                 )}
-              </div>
+              </motion.div>
             );
           })}
-        </section>
+        </motion.section>
       ) : (
         <section className="surface-panel overflow-hidden">
+          {/* ... (month view remains same) */}
           <div className="grid grid-cols-7 border-b border-slate-200/70 dark:border-slate-800">
             {weekDays.map((day) => (
               <div key={day} className="px-1 py-3 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-500 sm:px-3 sm:py-4 sm:text-xs sm:tracking-[0.2em] dark:text-slate-400">
@@ -363,6 +442,7 @@ export function Agenda() {
                         key={appointment.id}
                         className="truncate rounded-xl bg-white/70 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:bg-slate-900/60 dark:text-slate-200"
                       >
+                        {/* Extrai a hora formatada localmente */}
                         {format(new Date(appointment.data_hora), 'HH:mm')} · {appointment.paciente?.nome}
                       </div>
                     ))}
@@ -382,10 +462,13 @@ export function Agenda() {
       <AppointmentFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={loadAppointments}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+        }}
         selectedDate={selectedDate}
         defaultHour={selectedHour}
       />
-    </div>
+      </div>
+    </AnimatedPage>
   );
 }

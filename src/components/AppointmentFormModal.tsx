@@ -14,11 +14,16 @@ export function AppointmentFormModal({ isOpen, onClose, onSuccess, selectedDate,
   const [patients, setPatients] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
-  const [formData, setFormData] = useState({ paciente_id: '', hora: '08:00', observacoes: '' });
+  const [formData, setFormData] = useState({ paciente_id: '', data: '', hora: '08:00', observacoes: '' });
 
   useEffect(() => {
-    if (isOpen) {
-      setFormData({ paciente_id: '', hora: defaultHour || '08:00', observacoes: '' });
+     if (isOpen) {
+       setFormData({ 
+         paciente_id: '', 
+         data: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+         hora: defaultHour || '08:00', 
+         observacoes: '' 
+       });
       setFormError('');
       api.get('/pacientes').then((res) => {
         const patientsData = Array.isArray(res.data) ? res.data : res.data.data;
@@ -34,22 +39,25 @@ export function AppointmentFormModal({ isOpen, onClose, onSuccess, selectedDate,
     try {
       setIsSubmitting(true);
       setFormError('');
-      const dataFormatada = format(selectedDate, 'yyyy-MM-dd');
-      const dataHoraFinal = `${dataFormatada}T${formData.hora}:00`;
-
-      await api.post('/agendamentos', {
+      
+      const payload = {
         paciente_id: Number(formData.paciente_id),
-        data_hora: dataHoraFinal,
+        data_hora: `${formData.data}T${formData.hora}:00-03:00`,
         observacoes: formData.observacoes,
-        clinica_id: user?.clinica_id || 1,
-        fisioterapeuta_id: user?.id,
-      });
+        clinica_id: Number(user?.clinica_id || 1),
+        fisioterapeuta_id: Number(user?.id),
+      };
+
+      console.log('🚀 Enviando agendamento:', payload);
+
+      await api.post('/agendamentos', payload);
 
       toast.success('Agendamento concluído!');
       onSuccess();
       onClose();
     } catch (error: any) {
-      const message = getApiMessage(error);
+      console.error('❌ Erro no agendamento:', error.response?.data);
+      const message = error.response?.data?.error || error.response?.data?.message || 'Não foi possível concluir o agendamento.';
       setFormError(message);
       toast.error(message);
     } finally {
@@ -120,6 +128,22 @@ export function AppointmentFormModal({ isOpen, onClose, onSuccess, selectedDate,
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
+              <label className="form-label">Data</label>
+              <div className="relative">
+                <Calendar className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="date"
+                  value={formData.data}
+                  onChange={(e) => {
+                    setFormError('');
+                    setFormData({ ...formData, data: e.target.value });
+                  }}
+                  className="input-shell pl-11"
+                />
+              </div>
+            </div>
+
+            <div>
               <label className="form-label">Horário</label>
               <div className="relative">
                 <Clock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -140,13 +164,6 @@ export function AppointmentFormModal({ isOpen, onClose, onSuccess, selectedDate,
                     );
                   })}
                 </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="form-label">Data</label>
-              <div className="surface-muted flex h-[50px] items-center px-4 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                {format(selectedDate, 'dd/MM/yyyy')}
               </div>
             </div>
           </div>

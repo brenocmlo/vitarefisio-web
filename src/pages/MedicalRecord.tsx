@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { History, Plus, Lock, Clock, Calendar, CheckCircle2, Layers, Paperclip, ClipboardList, ShieldCheck } from 'lucide-react';
+import { History, Plus, Lock, Clock, Calendar, CheckCircle2, Layers, Paperclip, ClipboardList, ShieldCheck, XCircle, Zap } from 'lucide-react';
 import { format, isAfter, addHours } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EvolutionFormModal } from '../components/EvolutionFormModal';
@@ -76,7 +76,28 @@ export function MedicalRecord() {
               </div>
             </div>
 
-            <div className="w-full max-w-md shrink-0">
+            <div className="w-full max-w-md shrink-0 space-y-4">
+              {patient?.sessoes_restantes <= 2 && (
+                <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-bold shadow-lg animate-pulse ${
+                  patient?.sessoes_restantes === 0 
+                    ? 'border-red-400/30 bg-red-500/20 text-red-50' 
+                    : 'border-amber-400/30 bg-amber-500/20 text-amber-50'
+                }`}>
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20">
+                    {patient?.sessoes_restantes === 0 ? <XCircle size={18} /> : <Zap size={18} />}
+                  </div>
+                  <div className="flex-1">
+                    <p>{patient?.sessoes_restantes === 0 ? 'Sem sessões disponíveis' : `Atenção: Apenas ${patient?.sessoes_restantes} sessões restantes`}</p>
+                    <button 
+                      onClick={() => setActiveTab('pacotes')}
+                      className="mt-1 text-xs underline underline-offset-4 hover:text-white"
+                    >
+                      Renovar agora
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="rounded-[32px] bg-white/10 p-6 backdrop-blur-md border border-white/10 shadow-2xl">
                 <div className="mb-4 flex items-center justify-between">
                   <span className="text-xs font-black uppercase tracking-widest text-sky-100">Saldo de sessões</span>

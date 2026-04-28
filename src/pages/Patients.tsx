@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import { PatientFormModal } from '../components/PatientFormModal';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
+import { AnimatedPage } from '../components/AnimatedPage';
 
 interface Patient {
   id: number;
@@ -96,42 +98,44 @@ export function Patients() {
     }
   }
 
+
   return (
-    <div className="space-y-6">
-      <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="surface-panel p-6 sm:p-7">
-          <p className="eyebrow mb-3">Pacientes</p>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
-            Uma base organizada para acompanhar cada jornada terapêutica.
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-500 dark:text-slate-400">
-            Consulte rapidamente cadastros, encontre prontuários com menos esforço e mantenha convênios e contatos sempre acessíveis.
-          </p>
-        </div>
+    <AnimatedPage>
+      <div className="space-y-6">
+        <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+          <div className="surface-panel p-6 sm:p-7">
+            <p className="eyebrow mb-3">Pacientes</p>
+            <h1 className="font-display text-3xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
+              Uma base organizada para acompanhar cada jornada terapêutica.
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-500 dark:text-slate-400">
+              Consulte rapidamente cadastros, encontre prontuários com menos esforço e mantenha convênios e contatos sempre acessíveis.
+            </p>
+          </div>
 
-        <div className="surface-card grid gap-4 p-6 sm:grid-cols-2">
-          <InfoPill icon={Users} label="Total cadastrado" value={String(patients.length)} />
-          <InfoPill icon={ShieldCheck} label="Convênios ativos" value={String(patients.filter((item) => item.convenio_nome).length)} />
-        </div>
-      </section>
+          <div className="surface-card grid gap-4 p-6 sm:grid-cols-2">
+            <InfoPill icon={Users} label="Total cadastrado" value={String(patients.length)} />
+            <InfoPill icon={ShieldCheck} label="Convênios ativos" value={String(patients.filter((item) => item.convenio_nome).length)} />
+          </div>
+        </section>
 
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="surface-muted flex flex-1 items-center gap-3 px-4 py-3 sm:max-w-[380px]">
-          <Search className="h-5 w-5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Pesquisar por nome ou CPF..."
-            className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-200"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="surface-muted flex flex-1 items-center gap-3 px-4 py-3 sm:max-w-[380px]">
+            <Search className="h-5 w-5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Pesquisar por nome ou CPF..."
+              className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-200"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-        <button onClick={() => setIsModalOpen(true)} className="primary-button w-full sm:w-auto">
-          <UserPlus className="h-4 w-4" />
-          Novo paciente
-        </button>
-      </section>
+          <button onClick={() => setIsModalOpen(true)} className="primary-button w-full sm:w-auto">
+            <UserPlus className="h-4 w-4" />
+            Novo paciente
+          </button>
+        </section>
 
       <section className="space-y-4 lg:hidden">
         {loading ? (
@@ -380,7 +384,8 @@ export function Patients() {
       </section>
 
       <PatientFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={loadPatients} />
-    </div>
+      </div>
+    </AnimatedPage>
   );
 }
 

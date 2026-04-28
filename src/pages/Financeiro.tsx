@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import {
   DollarSign,
@@ -14,23 +15,22 @@ import {
   Filter,
   CheckCircle2,
   Trash2,
-  MoreVertical,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, subDays, isAfter, addMonths, subMonths, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
+import { AnimatedPage } from '../components/AnimatedPage';
 
 // ✨ Alterado para o novo componente que criamos
 import { NovoPagamentoModal } from '../components/NovoPagamentoModal'; 
-
+import { Skeleton } from '../components/Skeleton';
 export function Financeiro() {
-  const [rawTransacoes, setRawTransacoes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [period, setPeriod] = useState<'7d' | '30d' | 'mes' | 'all' | 'mes-especifico'>('mes');
-  const [deletingPaymentId, setDeletingPaymentId] = useState<number | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showMonthPicker, setShowMonthPicker] = useState(false);
 
@@ -78,27 +78,65 @@ export function Financeiro() {
     setShowMonthPicker(false);
   }
 
-  async function loadFinanceiro() {
-    try {
-      setLoading(true);
-      const response = await api.get('/pagamentos');
+  const queryClient = useQueryClient();
 
-      if (response.data.stats) {
-        setRawTransacoes(response.data.recentes || []);
-      } else {
-        setRawTransacoes(response.data);
-      }
-    } catch (error) {
-      toast.error('Erro ao carregar dados financeiros');
-      console.error(error);
-    } finally {
-      setLoading(false);
+  // Função de busca (com suporte a filtros de backend)
+  const fetchFinanceiro = async () => {
+    const params: any = {};
+    if (period === 'mes' || period === 'mes-especifico') {
+      params.mes = currentMonth.getMonth() + 1;
+      params.ano = currentMonth.getFullYear();
     }
-  }
+    
+    const response = await api.get('/pagamentos', { params });
+    return response.data;
+  };
 
-  useEffect(() => {
-    loadFinanceiro();
-  }, []);
+  const { data: financeData, isLoading, refetch } = useQuery({
+    queryKey: ['financeiro', period, currentMonth.getMonth(), currentMonth.getFullYear()],
+    queryFn: fetchFinanceiro,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/pagamentos/${id}`),
+    onMutate: async (id) => {
+      // Cancela refetches em andamento para não sobrescrever o cache otimista
+      await queryClient.cancelQueries({ queryKey: ['financeiro'] });
+
+      // Salva o estado anterior para rollback em caso de erro
+      const queryKey = ['financeiro', period, currentMonth.getMonth(), currentMonth.getFullYear()];
+      const previousData = queryClient.getQueryData(queryKey);
+
+      // Atualiza o cache instantaneamente
+      queryClient.setQueryData(queryKey, (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          recentes: old.recentes.filter((t: any) => t.id !== id)
+        };
+      });
+
+      return { previousData, queryKey };
+    },
+    onError: (error: any, id, context: any) => {
+      // Volta para o estado anterior se der erro
+      if (context?.previousData) {
+        queryClient.setQueryData(context.queryKey, context.previousData);
+      }
+      toast.error(error?.response?.data?.message || 'Erro ao remover lançamento.');
+    },
+    onSuccess: () => {
+      toast.success('Lançamento removido com sucesso.');
+    },
+    onSettled: (data, error, id, context: any) => {
+      // Re-sincroniza com o servidor no final
+      queryClient.invalidateQueries({ queryKey: context.queryKey });
+    }
+  });
+
+
+  const rawTransacoes = financeData?.recentes || [];
+  const stats = financeData?.stats || { totalRecebido: 0, aReceber: 0, faturamentoMes: 0 };
 
   useEffect(() => {
     function handleOutsideClick() {
@@ -114,42 +152,9 @@ export function Financeiro() {
     };
   }, [showMonthPicker]);
 
-  const transacoes = useMemo(() => {
-    const now = new Date();
+  const transacoes = rawTransacoes;
 
-    return rawTransacoes.filter((transaction) => {
-      const transactionDate = new Date(transaction.created_at || transaction.data_pagamento || new Date());
-
-      if (period === 'all') return true;
-      if (period === '7d') return isAfter(transactionDate, subDays(now, 7));
-      if (period === '30d') return isAfter(transactionDate, subDays(now, 30));
-      if (period === 'mes') return isAfter(transactionDate, startOfMonth(now));
-      if (period === 'mes-especifico') {
-        return isSameMonth(transactionDate, currentMonth);
-      }
-      return isAfter(transactionDate, startOfMonth(now));
-    });
-  }, [period, rawTransacoes, currentMonth]);
-
-  const stats = useMemo(() => {
-    return transacoes.reduce(
-      (acc, transaction) => {
-        const value = Number(transaction.valor || 0);
-        acc.faturamentoMes += value;
-        if (transaction.status === 'pago') {
-          acc.totalRecebido += value;
-        } else {
-          acc.aReceber += value;
-        }
-        return acc;
-      },
-      {
-        totalRecebido: 0,
-        aReceber: 0,
-        faturamentoMes: 0,
-      }
-    );
-  }, [transacoes]);
+  // stats já vem do backend agora!
 
   const currentPeriodLabel = useMemo(() => {
     if (period === '7d') return 'Últimos 7 dias';
@@ -165,16 +170,7 @@ export function Financeiro() {
     );
     if (!confirmed) return;
 
-    try {
-      setDeletingPaymentId(transaction.id);
-      await api.delete(`/pagamentos/${transaction.id}`);
-      setRawTransacoes((prev) => prev.filter((item) => item.id !== transaction.id));
-      toast.success('Lançamento removido com sucesso.');
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || error?.response?.data?.error || 'Não foi possível remover o lançamento.');
-    } finally {
-      setDeletingPaymentId(null);
-    }
+    deleteMutation.mutate(transaction.id);
   }
 
   function handleExportReport() {
@@ -184,7 +180,7 @@ export function Financeiro() {
     }
 
     const header = ['status', 'paciente', 'data', 'forma_pagamento', 'valor', 'agendamento_id'];
-    const lines = transacoes.map((transaction) => [
+    const lines = transacoes.map((transaction: any) => [
       transaction.status || '',
       transaction.paciente?.nome || 'Lançamento avulso',
       format(new Date(transaction.created_at || new Date()), 'dd/MM/yyyy HH:mm'),
@@ -194,7 +190,7 @@ export function Financeiro() {
     ]);
 
     const csvContent = [header, ...lines]
-      .map((line) => line.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(';'))
+      .map((line: any) => line.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(';'))
       .join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -207,165 +203,191 @@ export function Financeiro() {
     toast.success('Relatório exportado com sucesso.');
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="surface-panel flex min-h-[260px] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-emerald-200 border-t-emerald-600 dark:border-slate-700 dark:border-t-emerald-400" />
-          <p className="font-semibold text-slate-700 dark:text-slate-200">Carregando balanço financeiro...</p>
+      <div className="space-y-6">
+        <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+          <Skeleton className="h-[280px] w-full rounded-[40px]" />
+          <Skeleton className="h-[280px] w-full rounded-[32px]" />
         </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-32 w-full rounded-[32px]" />
+          ))}
+        </div>
+        <Skeleton className="h-[400px] w-full rounded-[32px]" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-        <div className="hero-panel p-6 sm:p-8">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-sky-50">
-            <Wallet className="h-3.5 w-3.5" />
-            Visão financeira
-          </div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Caixa da clínica com leitura mais clara e ação mais rápida.
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-sky-50/85 sm:text-base">
-            Monitore entradas, pendências e faturamento total em um painel com contraste mais confortável e foco no que pede decisão.
-          </p>
-        </div>
-
-        <div className="surface-card flex flex-col justify-between p-6">
-          <div>
-            <p className="eyebrow mb-3">Período atual</p>
-            <h2 className="font-display text-2xl font-extrabold text-slate-950 dark:text-slate-50 capitalize">
-              {currentPeriodLabel}
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
-              Use os lançamentos recentes para acompanhar recebimentos confirmados e cobranças ainda pendentes.
+    <AnimatedPage>
+      <div className="space-y-6">
+        <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+          <div className="hero-panel p-6 sm:p-8">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-sky-50">
+              <Wallet className="h-3.5 w-3.5" />
+              Visão financeira
+            </div>
+            <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+              Caixa da clínica com leitura mais clara e ação mais rápida.
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-sky-50/85 sm:text-base">
+              Monitore entradas, pendências e faturamento total em um painel com contraste mais confortável e foco no que pede decisão.
             </p>
           </div>
-          <div className="mt-5 flex flex-wrap gap-2">
-            {periodOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setPeriod(option.value)}
-                className={`rounded-2xl px-3 py-2 text-xs font-bold transition-all ${
-                  period === option.value
-                    ? 'bg-sky-500 text-white shadow-[0_12px_24px_rgba(14,165,233,0.22)]'
-                    : 'surface-muted text-slate-600 dark:text-slate-300'
-                }`}
-              >
-                <span className="flex items-center gap-2">
-                  <Filter className="h-3.5 w-3.5" />
-                  {option.label}
-                </span>
-              </button>
-            ))}
-          </div>
 
-          {period === 'mes-especifico' && (
-            <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-center gap-3 rounded-2xl bg-sky-500/10 p-3 dark:bg-sky-400/10">
-                <button
-                  onClick={() => navigateMonth('prev')}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/80 text-sky-600 transition-all hover:bg-white dark:bg-slate-800 dark:text-sky-400 dark:hover:bg-slate-700"
-                  title="Mês anterior"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-
-                <button
-                  onClick={() => setShowMonthPicker(!showMonthPicker)}
-                  className="flex items-center gap-2 rounded-lg bg-white/80 px-4 py-2 text-sm font-semibold text-sky-700 transition-all hover:bg-white dark:bg-slate-800 dark:text-sky-300 dark:hover:bg-slate-700"
-                  title="Selecionar mês"
-                >
-                  <Calendar className="h-4 w-4" />
-                  {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
-                </button>
-
-                <button
-                  onClick={() => navigateMonth('next')}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/80 text-sky-600 transition-all hover:bg-white dark:bg-slate-800 dark:text-sky-400 dark:hover:bg-slate-700"
-                  title="Próximo mês"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-
-                <button
-                  onClick={goToCurrentMonth}
-                  className="ml-2 rounded-lg bg-sky-500 px-3 py-1 text-xs font-bold text-white transition-all hover:bg-sky-600"
-                  title="Ir para mês atual"
-                >
-                  Hoje
-                </button>
-              </div>
-
-              {showMonthPicker && (
-                <div className="absolute z-10 mt-2 w-64 rounded-lg border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-800">
-                  <div className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    Selecionar período
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {availableMonths.slice(0, 12).map((month) => (
-                      <button
-                        key={month.value}
-                        onClick={() => selectMonth(month.value)}
-                        className={`rounded-lg p-2 text-xs transition-all hover:bg-sky-500 hover:text-white ${
-                          isSameMonth(month.date, currentMonth)
-                            ? 'bg-sky-500 text-white'
-                            : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
-                        }`}
-                      >
-                        {format(month.date, 'MMM yy', { locale: ptBR })}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="mt-3 flex justify-end">
-                    <button
-                      onClick={() => setShowMonthPicker(false)}
-                      className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-                    >
-                      Fechar
-                    </button>
-                  </div>
-                </div>
-              )}
+          <div className="surface-card flex flex-col justify-between p-6">
+            <div>
+              <p className="eyebrow mb-3">Período atual</p>
+              <h2 className="font-display text-2xl font-extrabold text-slate-950 dark:text-slate-50 capitalize">
+                {currentPeriodLabel}
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                Use os lançamentos recentes para acompanhar recebimentos confirmados e cobranças ainda pendentes.
+              </p>
             </div>
-          )}
-          <button onClick={() => setIsModalOpen(true)} className="primary-button mt-5">
-            <Plus className="h-4 w-4" />
-            Novo lançamento
-          </button>
-        </div>
-      </section>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {periodOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setPeriod(option.value)}
+                  className={`rounded-2xl px-3 py-2 text-xs font-bold transition-all ${
+                    period === option.value
+                      ? 'bg-sky-500 text-white shadow-[0_12px_24px_rgba(14,165,233,0.22)]'
+                      : 'surface-muted text-slate-600 dark:text-slate-300'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Filter className="h-3.5 w-3.5" />
+                    {option.label}
+                  </span>
+                </button>
+              ))}
+            </div>
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <FinancialCard
-          icon={TrendingUp}
-          label="Total recebido"
-          value={`R$ ${stats.totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          footer="Saldo consolidado"
-          footerIcon={ArrowUpRight}
-          accent="bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300"
-        />
-        <FinancialCard
-          icon={AlertCircle}
-          label="A receber"
-          value={`R$ ${stats.aReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          footer="Aguardando pagamento"
-          footerIcon={Clock}
-          accent="bg-amber-500/12 text-amber-700 dark:bg-amber-400/12 dark:text-amber-300"
-        />
-        <FinancialCard
-          icon={DollarSign}
-          label="Faturamento total"
-          value={`R$ ${stats.faturamentoMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-          footer="Acumulado no mês"
-          footerIcon={Calendar}
-          accent="bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300"
-        />
-      </section>
+            {period === 'mes-especifico' && (
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center justify-center gap-3 rounded-2xl bg-sky-500/10 p-3 dark:bg-sky-400/10">
+                  <button
+                    onClick={() => navigateMonth('prev')}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/80 text-sky-600 transition-all hover:bg-white dark:bg-slate-800 dark:text-sky-400 dark:hover:bg-slate-700"
+                    title="Mês anterior"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+
+                  <button
+                    onClick={() => setShowMonthPicker(!showMonthPicker)}
+                    className="flex items-center gap-2 rounded-lg bg-white/80 px-4 py-2 text-sm font-semibold text-sky-700 transition-all hover:bg-white dark:bg-slate-800 dark:text-sky-300 dark:hover:bg-slate-700"
+                    title="Selecionar mês"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+                  </button>
+
+                  <button
+                    onClick={() => navigateMonth('next')}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/80 text-sky-600 transition-all hover:bg-white dark:bg-slate-800 dark:text-sky-400 dark:hover:bg-slate-700"
+                    title="Próximo mês"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+
+                  <button
+                    onClick={goToCurrentMonth}
+                    className="ml-2 rounded-lg bg-sky-500 px-3 py-1 text-xs font-bold text-white transition-all hover:bg-sky-600"
+                    title="Ir para mês atual"
+                  >
+                    Hoje
+                  </button>
+                </div>
+
+                {showMonthPicker && (
+                  <div className="absolute z-10 mt-2 w-64 rounded-lg border border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                    <div className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      Selecionar período
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {availableMonths.slice(0, 12).map((month) => (
+                        <button
+                          key={month.value}
+                          onClick={() => selectMonth(month.value)}
+                          className={`rounded-lg p-2 text-xs transition-all hover:bg-sky-500 hover:text-white ${
+                            isSameMonth(month.date, currentMonth)
+                              ? 'bg-sky-500 text-white'
+                              : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          {format(month.date, 'MMM yy', { locale: ptBR })}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-3 flex justify-end">
+                      <button
+                        onClick={() => setShowMonthPicker(false)}
+                        className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                      >
+                        Fechar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <button onClick={() => setIsModalOpen(true)} className="primary-button mt-5">
+              <Plus className="h-4 w-4" />
+              Novo lançamento
+            </button>
+          </div>
+        </section>
+
+        <motion.section
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.1 } }
+          }}
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3"
+        >
+          {[
+            {
+              icon: TrendingUp,
+              label: "Total recebido",
+              value: `R$ ${stats.totalRecebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+              footer: "Saldo consolidado",
+              footerIcon: ArrowUpRight,
+              accent: "bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300"
+            },
+            {
+              icon: AlertCircle,
+              label: "A receber",
+              value: `R$ ${stats.aReceber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+              footer: "Aguardando pagamento",
+              footerIcon: Clock,
+              accent: "bg-amber-500/12 text-amber-700 dark:bg-amber-400/12 dark:text-amber-300"
+            },
+            {
+              icon: DollarSign,
+              label: "Faturamento total",
+              value: `R$ ${stats.faturamentoMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+              footer: "Acumulado no mês",
+              footerIcon: Calendar,
+              accent: "bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300"
+            }
+          ].map((card, i) => (
+            <motion.div
+              key={card.label}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 }
+              }}
+            >
+              <FinancialCard {...card} />
+            </motion.div>
+          ))}
+        </motion.section>
 
       <section className="space-y-4 lg:hidden">
         <div className="flex items-center justify-between px-2">
@@ -377,7 +399,7 @@ export function Financeiro() {
         </div>
         
         {transacoes.length > 0 ? (
-          transacoes.map((transaction) => (
+          transacoes.map((transaction: any) => (
             <div key={transaction.id} className="surface-panel p-4">
               <div className="flex items-start justify-between">
                 <div>
@@ -403,10 +425,14 @@ export function Financeiro() {
                   </p>
                   <button
                     onClick={() => handleDeletePayment(transaction)}
-                    disabled={deletingPaymentId === transaction.id}
+                    disabled={deleteMutation.isPending && deleteMutation.variables === transaction.id}
                     className="mt-2 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-900/10 dark:text-red-400"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    {deleteMutation.isPending && deleteMutation.variables === transaction.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -453,7 +479,7 @@ export function Financeiro() {
             </thead>
             <tbody className="divide-y divide-slate-200/70 dark:divide-slate-800">
               {transacoes.length > 0 ? (
-                transacoes.map((transaction) => (
+                transacoes.map((transaction: any) => (
                   <tr key={transaction.id} className="table-row">
                     <td className="px-6 py-4">
                       <span
@@ -498,11 +524,15 @@ export function Financeiro() {
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => handleDeletePayment(transaction)}
-                        disabled={deletingPaymentId === transaction.id}
+                        disabled={deleteMutation.isPending && deleteMutation.variables === transaction.id}
                         className="inline-flex items-center justify-center gap-2 rounded-lg p-2 text-red-600 transition-all hover:bg-red-500/10 disabled:opacity-50 dark:text-red-400"
                         title="Remover lançamento"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {deleteMutation.isPending && deleteMutation.variables === transaction.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </button>
                     </td>
                   </tr>
@@ -528,8 +558,9 @@ export function Financeiro() {
       </section>
 
       {/* ✨ Novo Componente Inteligente Aqui */}
-      <NovoPagamentoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={loadFinanceiro} />
-    </div>
+      <NovoPagamentoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={refetch} />
+      </div>
+    </AnimatedPage>
   );
 }
 
