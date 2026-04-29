@@ -7,6 +7,7 @@ interface User {
   email: string;
   clinica_id?: number;
   tipo: 'admin' | 'fisioterapeuta' | 'recepcao';
+  is_autonomo?: boolean;
 }
 
 interface SignInCredentials {

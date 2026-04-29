@@ -88,7 +88,7 @@ const Navbar = () => {
               Entrar
             </Link>
             <button
-              onClick={() => window.location.href = 'https://pay.kiwify.com.br/eGx36nI'}
+              onClick={() => window.location.href = '#COLE_SEU_LINK_DO_ABACATEPAY_AQUI'}
               className="bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-blue-600 dark:hover:bg-blue-500 dark:hover:text-white text-white px-7 py-3 rounded-full font-bold text-sm transition-all shadow-xl shadow-slate-200 dark:shadow-none hover:shadow-blue-200 active:scale-95"
             >
               EXPERIMENTE GRÁTIS
@@ -141,7 +141,7 @@ const Navbar = () => {
               </a>
             </div>
             <button
-              onClick={() => { setIsOpen(false); window.location.href = 'https://pay.kiwify.com.br/eGx36nI'; }}
+              onClick={() => { setIsOpen(false); window.location.href = '#COLE_SEU_LINK_DO_ABACATEPAY_AQUI'; }}
               className="bg-blue-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
             >
               TESTE GRÁTIS DURANTE 15 DIAS
@@ -177,7 +177,7 @@ const Hero = () => (
       
       <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-in fade-in slide-in-from-bottom-16 duration-1000 fill-mode-both">
         <button
-          onClick={() => window.location.href = 'https://pay.kiwify.com.br/eGx36nI'}
+          onClick={() => window.location.href = '#COLE_SEU_LINK_DO_ABACATEPAY_AQUI'}
           className="group relative bg-blue-600 hover:bg-blue-700 text-white px-10 py-6 rounded-2xl font-extrabold text-xl transition-all shadow-2xl shadow-blue-200 active:scale-95 flex items-center gap-3 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -338,7 +338,7 @@ const Pricing = () => {
       price: '69,90',
       period: '/mês',
       isFeatured: false,
-      link: 'https://pay.kiwify.com.br/eGx36nI',
+      link: '#COLE_SEU_LINK_DO_ABACATEPAY_AQUI',
     },
     {
       name: 'SEMESTRAL',
@@ -348,7 +348,7 @@ const Pricing = () => {
       discount: 'Economia de R$ 60,00',
       tag: 'Mais Escolhido',
       isFeatured: true,
-      link: 'https://pay.kiwify.com.br/8K501E9',
+      link: '#COLE_SEU_LINK_DO_ABACATEPAY_AQUI',
     },
     {
       name: 'ANUAL',
@@ -358,7 +358,7 @@ const Pricing = () => {
       discount: 'Economia de R$ 240,00',
       tag: 'Economia Máxima',
       isFeatured: false,
-      link: 'https://pay.kiwify.com.br/ZbcUdGE',
+      link: '#COLE_SEU_LINK_DO_ABACATEPAY_AQUI',
     },
   ];
 
@@ -533,7 +533,7 @@ const Footer = () => {
             A revolução na sua clínica começa com <span className="text-blue-500">um clique.</span>
           </h2>
           <button
-            onClick={() => window.location.href = 'https://pay.kiwify.com.br/eGx36nI'}
+            onClick={() => window.location.href = '#COLE_SEU_LINK_DO_ABACATEPAY_AQUI'}
             className="bg-white dark:bg-blue-600 text-slate-900 dark:text-white px-16 py-8 rounded-[32px] font-black text-2xl transition-all transform hover:scale-110 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:shadow-white/20 mb-12"
           >
             TESTE GRÁTIS DURANTE 15 DIAS

@@ -78,8 +78,8 @@ export function Staff() {
                 </div>
               </div>
 
-              {/* BOTÃO DE REMOVER (Sempre visível para quem acessa esta página) */}
-              {member.id !== user?.id && (
+              {/* BOTÃO DE REMOVER (Apenas o dono - is_autonomo - pode ver e usar) */}
+              {user?.is_autonomo && member.id !== user?.id && (
                 <button 
                   onClick={() => handleRemoveMember(member.id, member.nome)}
                   className="absolute top-4 right-4 p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/15 rounded-xl transition-all border border-transparent hover:border-red-200 dark:hover:border-red-500/30"
