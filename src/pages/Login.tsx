@@ -6,6 +6,7 @@ import { ArrowRight, Eye, EyeOff, Loader2, Moon, ShieldCheck, Sparkles, Stethosc
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -26,6 +27,7 @@ export function Login() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [error, setError] = useState('');
 
   const {
@@ -149,10 +151,12 @@ export function Login() {
                 <div>
                   <div className="flex items-center justify-between">
                     <label className="form-label">Senha</label>
-                    <Link to="/forgot-password" title="Recuperar senha" 
+                    <button 
+                      type="button" 
+                      onClick={() => setIsForgotModalOpen(true)}
                       className="text-xs font-semibold text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300">
                       Esqueci minha senha
-                    </Link>
+                    </button>
                   </div>
                   <div className="relative">
                     <input
@@ -199,6 +203,8 @@ export function Login() {
           </section>
         </div>
       </div>
+      
+      <ForgotPasswordModal isOpen={isForgotModalOpen} onClose={() => setIsForgotModalOpen(false)} />
     </div>
   );
 }
