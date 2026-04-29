@@ -1,0 +1,1 @@
+import{j as t}from"./index-Ckog5BVB.js";import{m as a}from"./proxy-B_DRlPnq.js";const n={initial:{opacity:0,y:10},animate:{opacity:1,y:0,transition:{duration:.4,ease:[.25,1,.5,1]}},exit:{opacity:0,y:-10,transition:{duration:.3}}};function r({children:i}){return t.jsx(a.div,{variants:n,initial:"initial",animate:"animate",exit:"exit",children:i})}export{r as A};
