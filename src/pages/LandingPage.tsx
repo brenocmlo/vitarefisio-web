@@ -338,7 +338,7 @@ const Pricing = () => {
       price: '69,90',
       period: '/mês',
       isFeatured: false,
-      link: '#COLE_SEU_LINK_DO_ABACATEPAY_AQUI',
+      link: 'https://app.abacatepay.com/pay/bill_fbHuuzxfE15cnpudAnATCEqD',
     },
     {
       name: 'SEMESTRAL',
@@ -348,7 +348,7 @@ const Pricing = () => {
       discount: 'Economia de R$ 60,00',
       tag: 'Mais Escolhido',
       isFeatured: true,
-      link: '#COLE_SEU_LINK_DO_ABACATEPAY_AQUI',
+      link: 'https://app.abacatepay.com/pay/bill_BpRFxJNPr4CSreQ0MKz6hAnR',
     },
     {
       name: 'ANUAL',
@@ -358,7 +358,7 @@ const Pricing = () => {
       discount: 'Economia de R$ 240,00',
       tag: 'Economia Máxima',
       isFeatured: false,
-      link: '#COLE_SEU_LINK_DO_ABACATEPAY_AQUI',
+      link: 'https://app.abacatepay.com/pay/bill_ENu6C3ct1H3BX2dPJ5ETx3tq',
     },
   ];
 
