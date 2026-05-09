@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { 
   Menu, 
   X, 
@@ -7,11 +7,8 @@ import {
   Calendar, 
   Users, 
   FileText, 
-  PieChart, 
   MessageSquare, 
   Plus, 
-  Star, 
-  ChevronDown, 
   Stethoscope,
   LayoutDashboard,
   Smartphone,

@@ -19,7 +19,7 @@ import {
   ChevronRight,
   Loader2,
 } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, subDays, isAfter, addMonths, subMonths, isSameMonth } from 'date-fns';
+import { format, addMonths, subMonths, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -118,7 +118,7 @@ export function Financeiro() {
 
       return { previousData, queryKey };
     },
-    onError: (error: any, id, context: any) => {
+    onError: (error: any, _id, context: any) => {
       // Volta para o estado anterior se der erro
       if (context?.previousData) {
         queryClient.setQueryData(context.queryKey, context.previousData);
@@ -128,7 +128,7 @@ export function Financeiro() {
     onSuccess: () => {
       toast.success('Lançamento removido com sucesso.');
     },
-    onSettled: (data, error, id, context: any) => {
+    onSettled: (_data, _error, _id, context: any) => {
       // Re-sincroniza com o servidor no final
       queryClient.invalidateQueries({ queryKey: context.queryKey });
     }
@@ -376,7 +376,7 @@ export function Financeiro() {
               footerIcon: Calendar,
               accent: "bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300"
             }
-          ].map((card, i) => (
+          ].map((card) => (
             <motion.div
               key={card.label}
               variants={{

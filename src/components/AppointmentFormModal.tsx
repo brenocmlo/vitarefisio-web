@@ -5,9 +5,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
 
-function getApiMessage(error: any) {
-  return error?.response?.data?.message || error?.response?.data?.error || 'Não foi possível concluir o agendamento.';
-}
+
 
 export function AppointmentFormModal({ isOpen, onClose, onSuccess, selectedDate, defaultHour }: any) {
   const { user } = useAuth();

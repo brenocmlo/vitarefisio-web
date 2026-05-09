@@ -4,7 +4,7 @@ import * as z from 'zod';
 import api from '../services/api';
 import { ArrowLeft, ArrowRight, Loader2, Mail, Moon, Sun } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { toast } from 'sonner';
 
@@ -16,7 +16,6 @@ type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPassword() {
   const { resolvedTheme, setTheme } = useTheme();
-  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSent, setIsSent] = useState(false);
 

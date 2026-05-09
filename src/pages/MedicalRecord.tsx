@@ -252,15 +252,6 @@ export function MedicalRecord() {
   );
 }
 
-function RecordPill({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[24px] border border-white/14 bg-white/10 px-5 py-4 text-white backdrop-blur-sm">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-100">{label}</p>
-      <p className="mt-2 text-lg font-bold">{value}</p>
-    </div>
-  );
-}
-
 function SoapBlock({
   color,
   title,

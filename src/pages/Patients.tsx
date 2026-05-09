@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Search, UserPlus, FileText, MoreVertical, Users, ShieldCheck, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { PatientFormModal } from '../components/PatientFormModal';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
 import { AnimatedPage } from '../components/AnimatedPage';
 
 interface Patient {

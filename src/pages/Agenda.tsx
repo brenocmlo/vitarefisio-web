@@ -16,7 +16,6 @@ import {
   format,
   addDays,
   subDays,
-  getHours,
   startOfMonth,
   endOfMonth,
   startOfWeek,
