@@ -17,6 +17,8 @@ const Financeiro = lazy(() => import('./pages/Financeiro').then(m => ({ default:
 const Staff = lazy(() => import('./pages/Staff').then(m => ({ default: m.Staff })));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
 const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const Welcome = lazy(() => import('./pages/Welcome').then(m => ({ default: m.Welcome })));
+const CheckoutCancel = lazy(() => import('./pages/CheckoutCancel').then(m => ({ default: m.CheckoutCancel })));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 
 export default function App() {
@@ -57,6 +59,8 @@ export default function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/bem-vindo" element={<Welcome />} />
+            <Route path="/checkout/cancel" element={<CheckoutCancel />} />
             
             {/* ROTAS COMUNS: Todos acessam */}
             <Route element={<ProtectedRoute allowedRoles={['admin', 'fisioterapeuta', 'recepcao']} />}>

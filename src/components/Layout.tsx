@@ -224,13 +224,24 @@ export function Layout({ children }: { children: ReactNode }) {
                 </div>
               </div>
 
-              <button
-                onClick={signOut}
-                className="secondary-button w-full justify-center border-red-200/60 text-red-600 hover:bg-red-50 dark:border-red-500/20 dark:text-red-300 dark:hover:bg-red-500/10"
-              >
-                <LogOut className="h-4 w-4" />
-                Sair do sistema
-              </button>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="https://dashboard.kiwify.com.br/purchases"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="secondary-button w-full justify-center text-slate-600 dark:text-slate-300"
+                >
+                  <DollarSign className="h-4 w-4" />
+                  Gerenciar assinatura
+                </a>
+                <button
+                  onClick={signOut}
+                  className="secondary-button w-full justify-center border-red-200/60 text-red-600 hover:bg-red-50 dark:border-red-500/20 dark:text-red-300 dark:hover:bg-red-500/10"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sair do sistema
+                </button>
+              </div>
             </div>
           </div>
         </aside>

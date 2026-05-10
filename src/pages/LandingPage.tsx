@@ -85,10 +85,10 @@ const Navbar = () => {
               Entrar
             </Link>
             <button
-              onClick={() => window.location.href = 'https://app.abacatepay.com/pay/bill_fbHuuzxfE15cnpudAnATCEqD'}
+              onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })}
               className="bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-blue-600 dark:hover:bg-blue-500 dark:hover:text-white text-white px-7 py-3 rounded-full font-bold text-sm transition-all shadow-xl shadow-slate-200 dark:shadow-none hover:shadow-blue-200 active:scale-95"
             >
-              EXPERIMENTE GRÁTIS
+              VER PLANOS
             </button>
           </div>
 
@@ -138,10 +138,10 @@ const Navbar = () => {
               </a>
             </div>
             <button
-              onClick={() => { setIsOpen(false); window.location.href = 'https://app.abacatepay.com/pay/bill_fbHuuzxfE15cnpudAnATCEqD'; }}
+              onClick={() => { setIsOpen(false); document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' }); }}
               className="bg-blue-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg"
             >
-              TESTE GRÁTIS DURANTE 15 DIAS
+              VER PLANOS
             </button>
           </div>
         </div>
@@ -174,7 +174,7 @@ const Hero = () => (
       
       <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-in fade-in slide-in-from-bottom-16 duration-1000 fill-mode-both">
         <button
-          onClick={() => window.location.href = 'https://app.abacatepay.com/pay/bill_fbHuuzxfE15cnpudAnATCEqD'}
+          onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })}
           className="group relative bg-blue-600 hover:bg-blue-700 text-white px-10 py-6 rounded-2xl font-extrabold text-xl transition-all shadow-2xl shadow-blue-200 active:scale-95 flex items-center gap-3 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -335,7 +335,7 @@ const Pricing = () => {
       price: '69,90',
       period: '/mês',
       isFeatured: false,
-      link: 'https://app.abacatepay.com/pay/bill_fbHuuzxfE15cnpudAnATCEqD',
+      link: 'https://pay.kiwify.com.br/IeVr2EM',
     },
     {
       name: 'SEMESTRAL',
@@ -345,7 +345,7 @@ const Pricing = () => {
       discount: 'Economia de R$ 60,00',
       tag: 'Mais Escolhido',
       isFeatured: true,
-      link: 'https://app.abacatepay.com/pay/bill_BpRFxJNPr4CSreQ0MKz6hAnR',
+      link: 'https://pay.kiwify.com.br/QzcZm8Q',
     },
     {
       name: 'ANUAL',
@@ -355,7 +355,7 @@ const Pricing = () => {
       discount: 'Economia de R$ 240,00',
       tag: 'Economia Máxima',
       isFeatured: false,
-      link: 'https://app.abacatepay.com/pay/bill_ENu6C3ct1H3BX2dPJ5ETx3tq',
+      link: 'https://pay.kiwify.com.br/3APLYLC',
     },
   ];
 
@@ -366,7 +366,7 @@ const Pricing = () => {
           Planos para Fisioterapeutas Autônomos
         </h2>
         <p className="text-slate-500 dark:text-slate-400 font-medium text-lg mb-20 max-w-2xl mx-auto">
-          A liberdade que você precisa com o controle que sua carreira merece. Teste por 15 dias sem compromisso.
+          A liberdade que você precisa com o controle que sua carreira merece.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center group/pricing-grid">
@@ -432,7 +432,7 @@ const Pricing = () => {
                     : 'bg-slate-900 text-white hover:bg-blue-600 hover:shadow-blue-200'
                 }`}
               >
-                TESTE GRÁTIS DURANTE 15 DIAS
+                ASSINAR AGORA
               </button>
             </div>
           ))}
@@ -480,7 +480,6 @@ const FAQ = () => {
 
   const questions = [
     { q: 'O SomosFisio é difícil de aprender?', a: 'Não! É o sistema mais intuitivo do mercado. Em 15 minutos você já domina as funções principais.' },
-    { q: 'Como funcionam os 15 dias grátis?', a: 'Você cria sua conta, usa tudo e só paga se gostar. Não pedimos cartão de crédito para o teste.' },
     { q: 'Posso acessar pelo celular?', a: 'Com certeza! Temos um App dedicado e a versão web funciona perfeitamente em qualquer dispositivo.' },
     { q: 'O sistema envia WhatsApp automático?', a: 'Sim! Reduzimos as faltas em até 45% com lembretes inteligentes que confirmam a presença do seu paciente.' },
   ];
@@ -530,10 +529,10 @@ const Footer = () => {
             A revolução na sua clínica começa com <span className="text-blue-500">um clique.</span>
           </h2>
           <button
-            onClick={() => window.location.href = 'https://app.abacatepay.com/pay/bill_fbHuuzxfE15cnpudAnATCEqD'}
+            onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })}
             className="bg-white dark:bg-blue-600 text-slate-900 dark:text-white px-16 py-8 rounded-[32px] font-black text-2xl transition-all transform hover:scale-110 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)] hover:shadow-white/20 mb-12"
           >
-            TESTE GRÁTIS DURANTE 15 DIAS
+            COMEÇAR AGORA
           </button>
           <div className="flex flex-wrap justify-center gap-10 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-[0.2em]">
             <div className="flex items-center gap-2 underline decoration-blue-500 decoration-2 underline-offset-4">Sem cartão</div>
