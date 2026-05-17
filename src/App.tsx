@@ -19,6 +19,7 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword').then(m => ({ 
 const ResetPassword = lazy(() => import('./pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
 const Welcome = lazy(() => import('./pages/Welcome').then(m => ({ default: m.Welcome })));
 const CheckoutCancel = lazy(() => import('./pages/CheckoutCancel').then(m => ({ default: m.CheckoutCancel })));
+const SubscriptionInactive = lazy(() => import('./pages/SubscriptionInactive').then(m => ({ default: m.SubscriptionInactive })));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 
 export default function App() {
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/bem-vindo" element={<Welcome />} />
             <Route path="/checkout/cancel" element={<CheckoutCancel />} />
+            <Route path="/assinatura-inativa" element={<SubscriptionInactive />} />
             
             {/* ROTAS COMUNS: Todos acessam */}
             <Route element={<ProtectedRoute allowedRoles={['admin', 'fisioterapeuta', 'recepcao']} />}>

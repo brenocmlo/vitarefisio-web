@@ -8,6 +8,8 @@ interface User {
   clinica_id?: number;
   tipo: 'admin' | 'fisioterapeuta' | 'recepcao';
   is_autonomo?: boolean;
+  subscription_status?: string;
+  subscription_end?: string | Date | null;
 }
 
 interface SignInCredentials {

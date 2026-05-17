@@ -23,6 +23,11 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     return <Navigate to="/" replace />;
   }
 
+  // Verifica inadimplência/cancelamento da Kiwify
+  if (user && user.subscription_status === 'SUSPENDED') {
+    return <Navigate to="/assinatura-inativa" replace />;
+  }
+
   if (allowedRoles && user && !allowedRoles.includes(user.tipo)) {
     return <Navigate to="/dashboard" replace />;
   }
