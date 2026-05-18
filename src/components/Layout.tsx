@@ -232,7 +232,7 @@ export function Layout({ children }: { children: ReactNode }) {
                   className="secondary-button w-full justify-center text-slate-600 dark:text-slate-300"
                 >
                   <DollarSign className="h-4 w-4" />
-                  Gerenciar assinatura
+                  Gerenciar / Cancelar assinatura
                 </a>
                 <button
                   onClick={signOut}

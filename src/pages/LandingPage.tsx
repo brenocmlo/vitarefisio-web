@@ -345,7 +345,7 @@ const Pricing = () => {
       discount: 'Economia de R$ 60,00',
       tag: 'Mais Escolhido',
       isFeatured: true,
-      link: 'https://pay.kiwify.com.br/QzcZm8Q',
+      link: 'https://pay.kiwify.com.br/GCelPc5',
     },
     {
       name: 'ANUAL',
@@ -355,7 +355,7 @@ const Pricing = () => {
       discount: 'Economia de R$ 240,00',
       tag: 'Economia Máxima',
       isFeatured: false,
-      link: 'https://pay.kiwify.com.br/3APLYLC',
+      link: 'https://pay.kiwify.com.br/Ut6gYjh',
     },
   ];
 

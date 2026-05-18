@@ -7,7 +7,7 @@ export const SubscriptionInactive: React.FC = () => {
   const { signOut } = useAuth();
 
   // Substitua pela sua URL real de checkout da Kiwify
-  const kiwifyCheckoutUrl = "https://pay.kiwify.com.br/seu-link-aqui";
+  const kiwifyCheckoutUrl = "https://pay.kiwify.com.br/GCelPc5";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 dark:bg-slate-950 transition-colors duration-500 relative overflow-hidden">
