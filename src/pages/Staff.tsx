@@ -23,11 +23,11 @@ export function Staff() {
 
   useEffect(() => { loadTeam(); }, []);
 
-    async function handleRemoveMember(id: number, nome: string) {
-    if (id === user?.id) {
-      toast.error('Você não pode remover o seu próprio acesso de Administrador.');
+  async function handleRemoveMember(id: number, nome: string, email: string) {
+    if (email === user?.email) {
+      toast.error('Você não pode remover o seu próprio acesso.');
       return;
-}
+    }
 
     const confirmed = window.confirm(`Tem certeza que deseja remover o acesso de ${nome}? Esta ação revogará o acesso dele ao sistema imediatamente.`);
     
@@ -37,7 +37,6 @@ export function Staff() {
         toast.success('Profissional removido e acesso revogado!');
         loadTeam(); 
       } catch (error: any) {
-        // ✨ A MÁGICA ESTÁ AQUI: Lendo o '.error' em vez de '.message'
         const backendError = error.response?.data?.error || error.response?.data?.message || 'Erro ao remover profissional.';
         toast.error(backendError);
         console.error("Erro completo:", error.response?.data);
@@ -78,10 +77,10 @@ export function Staff() {
                 </div>
               </div>
 
-              {/* BOTÃO DE REMOVER (Apenas o dono - is_autonomo - pode ver e usar) */}
-              {user?.is_autonomo && member.id !== user?.id && (
+              {/* BOTÃO DE REMOVER (Apenas administradores ou donos do sistema podem usar) */}
+              {(user?.tipo === 'admin' || user?.is_autonomo) && member.email !== user?.email && (
                 <button 
-                  onClick={() => handleRemoveMember(member.id, member.nome)}
+                  onClick={() => handleRemoveMember(member.id, member.nome, member.email)}
                   className="absolute top-4 right-4 p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/15 rounded-xl transition-all border border-transparent hover:border-red-200 dark:hover:border-red-500/30"
                   title="Revogar Acesso"
                 >

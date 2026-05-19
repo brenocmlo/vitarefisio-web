@@ -365,9 +365,12 @@ const Pricing = () => {
         <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
           Planos para Fisioterapeutas Autônomos
         </h2>
-        <p className="text-slate-500 dark:text-slate-400 font-medium text-lg mb-20 max-w-2xl mx-auto">
+        <p className="text-slate-500 dark:text-slate-400 font-medium text-lg mb-4 max-w-2xl mx-auto">
           A liberdade que você precisa com o controle que sua carreira merece.
         </p>
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-300 text-xs font-extrabold mb-16 border border-amber-200/50 dark:border-amber-400/20">
+          ⚠️ Valores promocionais de lançamento válidos exclusivamente para assinaturas realizadas no primeiro mês.
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center group/pricing-grid">
           {plans.map((plan, idx) => (
@@ -518,7 +521,7 @@ const FAQ = () => {
   );
 };
 
-const Footer = () => {
+const Footer = ({ onOpenModal }: { onOpenModal: (type: 'termos' | 'privacidade') => void }) => {
   return (
     <footer className="bg-slate-900 dark:bg-slate-950 pt-32 pb-16 text-white overflow-hidden relative transition-colors duration-500">
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-[300px] bg-blue-600/20 blur-[120px] rounded-full -z-10"></div>
@@ -561,8 +564,8 @@ const Footer = () => {
               <Instagram size={16} />
               Instagram
             </a>
-            <a href="#" className="hover:text-white transition-colors">Termos</a>
-            <a href="#" className="hover:text-white transition-colors">Privacidade</a>
+            <button onClick={() => onOpenModal('termos')} className="hover:text-white transition-colors cursor-pointer focus:outline-none">Termos</button>
+            <button onClick={() => onOpenModal('privacidade')} className="hover:text-white transition-colors cursor-pointer focus:outline-none">Privacidade</button>
           </div>
         </div>
       </div>
@@ -570,9 +573,118 @@ const Footer = () => {
   );
 };
 
+// --- LGPD Modal Component ---
+
+const DocModal = ({ type, onClose }: { type: 'termos' | 'privacidade'; onClose: () => void }) => {
+  const isTermos = type === 'termos';
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="w-full max-w-3xl rounded-[32px] border border-slate-100 bg-white p-8 shadow-2xl dark:border-slate-800 dark:bg-slate-900 transition-all duration-300 flex flex-col max-h-[80vh]">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
+          <h3 className="font-display text-2xl font-black text-slate-950 dark:text-slate-50">
+            {isTermos ? 'Termos de Uso (LGPD)' : 'Política de Privacidade (LGPD)'}
+          </h3>
+          <button 
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto pr-2 space-y-6 text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+          {isTermos ? (
+            <>
+              <p>Bem-vindo ao <strong>SomosFisio</strong>. Ao acessar ou utilizar nossa plataforma, você concorda com estes Termos de Uso.</p>
+              
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white mb-2 text-base">1. Definições e Papéis sob a LGPD</h4>
+                <p>
+                  Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018):
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li>O <strong>Fisioterapeuta / Clínica</strong> atua como o <strong>Controlador</strong> dos dados pessoais e de saúde de seus pacientes cadastrados no sistema, sendo o único responsável por colher o devido consentimento ou definir a base legal adequada para o tratamento dos dados.</li>
+                    <li>O <strong>SomosFisio</strong> atua exclusivamente como o <strong>Operador</strong> dos dados, fornecendo a infraestrutura digital e as ferramentas de prontuário, receitas e agendamentos de acordo com as instruções do Controlador.</li>
+                  </ul>
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white mb-2 text-base">2. Responsabilidade do Profissional</h4>
+                <p>O profissional de saúde compromete-se a utilizar a plataforma para fins estritamente profissionais e éticos, mantendo o sigilo e o segredo profissional exigidos pelo conselho de classe (COFFITO) e legislação aplicável.</p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white mb-2 text-base">3. Segurança da Informação</h4>
+                <p>Implementamos rigorosos controles de acesso técnico e criptografia para proteger os dados pessoais armazenados. O acesso dos membros da sua equipe (fisioterapeutas e recepcionistas) é definido pelo administrador, que poderá revogar o acesso a qualquer momento através do painel "Minha Equipe".</p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white mb-2 text-base">4. Planos, Cobrança e Cancelamento</h4>
+                <p>
+                  As assinaturas são renovadas automaticamente conforme o período contratado (Mensal, Semestral ou Anual).
+                  <br />
+                  <span className="text-amber-600 dark:text-amber-400 font-bold">⚠️ Nota sobre reajustes e valores promocionais:</span> O valor vigente na contratação inicial é promocional e válido para adesões no primeiro mês de lançamento. O SomosFisio reserva-se o direito de criar novos lotes de preços para novas contratações. As assinaturas ativas mantêm suas condições promocionais de lançamento durante o período contratado, sem interrupção de acesso quando novos valores de produtos forem introduzidos para novos assinantes na plataforma de pagamentos.
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white mb-2 text-base">5. Legislação Aplicável</h4>
+                <p>Estes termos são regidos pelas leis da República Federativa do Brasil, em especial a Lei Geral de Proteção de Dados (LGPD) e o Marco Civil da Internet.</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <p>O <strong>SomosFisio</strong> valoriza a privacidade dos profissionais de saúde e de seus pacientes. Esta Política de Privacidade explica como protegemos seus dados.</p>
+
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white mb-2 text-base">1. Dados que Coletamos</h4>
+                <p>
+                  Coletamos informações cadastrais fornecidas diretamente por você ou pela plataforma de pagamentos (Kiwify/AbacatePay):
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li><strong>Dados do Profissional:</strong> Nome completo, CPF, e-mail, telefone e registro profissional (CREFITO).</li>
+                    <li><strong>Dados de Pagamento:</strong> Processados de forma segura pelas plataformas de pagamento integradas (Kiwify e AbacatePay), sem que o SomosFisio armazene dados de cartões de crédito.</li>
+                    <li><strong>Dados de Pacientes:</strong> Nome, telefone, CPF, anamnese, evoluções clínicas e agendamentos preenchidos voluntariamente pelo fisioterapeuta.</li>
+                  </ul>
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white mb-2 text-base">2. Finalidade do Tratamento</h4>
+                <p>Utilizamos os dados coletados exclusivamente para a prestação dos serviços contratados: ativação e autenticação de contas, processamento de cobrança, envio de e-mails transacionais (como definição de senha) e viabilização das funcionalidades clínicas (prontuário digital e agenda).</p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white mb-2 text-base">3. Compartilhamento e Armazenamento</h4>
+                <p>Todos os dados clínicos de pacientes são armazenados em nuvem criptografada e isolada por clínica (Row Level Security), de modo a garantir total isolamento de dados sob a LGPD. Não comercializamos dados pessoais sob nenhuma hipótese. Os dados só são compartilhados com sub-processadores essenciais homologados (ex: infraestrutura de banco de dados do Supabase e envio de e-mails via Resend).</p>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white mb-2 text-base">4. Direitos do Titular (LGPD - Art. 18)</h4>
+                <p>Os profissionais titulares de dados têm o direito de solicitar a confirmação do tratamento, obter acesso aos seus dados, solicitar retificação ou até mesmo a exclusão definitiva de sua conta do sistema. Para exercer esses direitos, entre em contato através de nosso suporte em <strong>suporte@somosfisio.com.br</strong>.</p>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="mt-8 border-t border-slate-100 dark:border-slate-800 pt-4 flex justify-end">
+          <button 
+            onClick={onClose}
+            className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 dark:shadow-none"
+          >
+            Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Main Page Component ---
 
 const LandingPage: React.FC = () => {
+  const [modalType, setModalType] = React.useState<'termos' | 'privacidade' | null>(null);
+
   React.useEffect(() => {
     const observerOptions = {
       threshold: 0.1,
@@ -604,7 +716,11 @@ const LandingPage: React.FC = () => {
         <div className="reveal-hidden"><ClinicaCTA /></div>
         <div className="reveal-hidden"><FAQ /></div>
       </main>
-      <Footer />
+      <Footer onOpenModal={(type) => setModalType(type)} />
+
+      {modalType && (
+        <DocModal type={modalType} onClose={() => setModalType(null)} />
+      )}
     </div>
   );
 };
