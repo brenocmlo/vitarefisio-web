@@ -51,7 +51,7 @@ export function ResetPassword() {
       toast.success('Senha redefinida com sucesso!');
       
       setTimeout(() => {
-        navigate('/');
+        navigate('/login');
       }, 3000);
 
     } catch (err: any) {
@@ -67,7 +67,7 @@ export function ResetPassword() {
         <div className="surface-panel p-8 text-center">
           <h2 className="text-xl font-bold text-red-500">Link Inválido</h2>
           <p className="mt-2 text-slate-500">Este link de recuperação parece estar quebrado ou expirado.</p>
-          <button onClick={() => navigate('/')} className="primary-button mt-6 w-full">Voltar ao Login</button>
+          <button onClick={() => navigate('/login')} className="primary-button mt-6 w-full">Voltar ao Login</button>
         </div>
       </div>
     );

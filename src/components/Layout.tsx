@@ -61,14 +61,36 @@ const themeOptions = [
 ] as const;
 
 export function Layout({ children }: { children: ReactNode }) {
-  const { user, signOut } = useAuth();
+  const { user, signOut, updateUser } = useAuth();
   const location = useLocation();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [crefitoInput, setCrefitoInput] = useState('');
+  const [isSubmittingCrefito, setIsSubmittingCrefito] = useState(false);
 
   useEffect(() => {
     setMobileNavOpen(false);
   }, [location.pathname]);
+
+  const needsCrefito = user && (user.tipo === 'admin' || user.tipo === 'fisioterapeuta') && (!user.crefito || user.crefito === 'Pendente');
+
+  async function handleSaveCrefito(e: React.FormEvent) {
+    e.preventDefault();
+    if (!crefitoInput.trim() || crefitoInput === 'Pendente') {
+      toast.error('Por favor, informe um CREFITO válido.');
+      return;
+    }
+    setIsSubmittingCrefito(true);
+    try {
+      await api.patch('/fisioterapeutas/crefito', { crefito: crefitoInput.trim() });
+      updateUser({ crefito: crefitoInput.trim() });
+      toast.success('CREFITO cadastrado com sucesso!');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao salvar CREFITO.');
+    } finally {
+      setIsSubmittingCrefito(false);
+    }
+  }
 
   const currentPage = useMemo(() => {
     if (location.pathname.startsWith('/pacientes/') && location.pathname.includes('/prontuario')) {
@@ -293,6 +315,58 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="mx-auto w-full max-w-7xl flex-1">{children}</div>
         </main>
       </div>
+
+      {needsCrefito && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-8 shadow-2xl dark:border-slate-800 dark:bg-slate-900 transition-all duration-300">
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-[22px] bg-blue-500/10 text-blue-600 dark:bg-blue-400/12 dark:text-blue-300">
+                <Sparkles className="h-7 w-7 animate-pulse" />
+              </div>
+              <h3 className="font-display text-2xl font-extrabold text-slate-950 dark:text-slate-50">
+                Quase lá!
+              </h3>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                Para começar a usar a plataforma e organizar sua clínica, precisamos do seu registro CREFITO.
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveCrefito} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500 mb-2">
+                  Registro CREFITO
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: 123456-F"
+                  value={crefitoInput}
+                  onChange={(e) => setCrefitoInput(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 text-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-800 dark:bg-slate-950 dark:text-white transition-all font-medium"
+                />
+              </div>
+
+              <div className="pt-2 flex flex-col gap-2">
+                <button
+                  type="submit"
+                  disabled={isSubmittingCrefito}
+                  className="primary-button w-full justify-center py-3 flex items-center gap-2"
+                >
+                  {isSubmittingCrefito ? 'Salvando...' : 'Confirmar e iniciar'}
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={signOut}
+                  className="secondary-button w-full justify-center py-3 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+                >
+                  Sair do sistema
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

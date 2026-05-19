@@ -10,6 +10,7 @@ interface User {
   is_autonomo?: boolean;
   subscription_status?: string;
   subscription_end?: string | Date | null;
+  crefito?: string | null;
 }
 
 interface SignInCredentials {
@@ -23,6 +24,7 @@ interface AuthContextData {
   loading: boolean;
   signIn(credentials: SignInCredentials): Promise<void>;
   signOut(): void;
+  updateUser(userData: Partial<User>): void;
 }
 
 export const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -68,8 +70,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }): ReactElemen
     setUser(null);
   }
 
+  function updateUser(userData: Partial<User>) {
+    setUser((prevUser) => {
+      if (!prevUser) return null;
+      const updated = { ...prevUser, ...userData };
+      localStorage.setItem('@VitareFisio:user', JSON.stringify(updated));
+      return updated;
+    });
+  }
+
   return (
-    <AuthContext.Provider value={{ signed: !!user, user, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ signed: !!user, user, loading, signIn, signOut, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
