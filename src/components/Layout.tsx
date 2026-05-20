@@ -72,7 +72,7 @@ export function Layout({ children }: { children: ReactNode }) {
     setMobileNavOpen(false);
   }, [location.pathname]);
 
-  const needsCrefito = user && (user.tipo === 'admin' || user.tipo === 'fisioterapeuta') && (!user.crefito || user.crefito === 'Pendente');
+  const needsCrefito = user && user.tipo === 'fisioterapeuta' && (!user.crefito || user.crefito === 'Pendente');
 
   async function handleSaveCrefito(e: React.FormEvent) {
     e.preventDefault();
