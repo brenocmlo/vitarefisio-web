@@ -34,7 +34,7 @@ const plans = [
 
 const benefits = [
   'Acesso completo a todas as ferramentas (Agenda, Evoluções, Receitas e Prontuários).',
-  'Aplicativo do Paciente gratuito e integrado.',
+  'Lembretes automáticos enviados via WhatsApp.',
   'Suporte prioritário via WhatsApp.',
 ];
 

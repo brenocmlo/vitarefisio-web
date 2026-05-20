@@ -272,10 +272,10 @@ const Features = () => {
       size: 'md:col-span-1 md:row-span-1'
     },
     { 
-      title: 'App do Paciente', 
-      desc: 'Seu paciente acompanha a evolução e as sessões restantes pelo próprio celular.',
-      icon: <Smartphone />, 
-      color: 'bg-amber-500',
+      title: 'Integração WhatsApp', 
+      desc: 'Envio automático de lembretes de consultas e confirmações de presença diretamente pelo WhatsApp.',
+      icon: <MessageSquare />, 
+      color: 'bg-emerald-500',
       size: 'md:col-span-1 md:row-span-1'
     },
     { 
@@ -422,7 +422,7 @@ const Pricing = () => {
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center ${plan.isFeatured ? 'bg-white/20' : 'bg-blue-50'}`}>
                       <CheckCircle2 size={14} className={plan.isFeatured ? 'text-white' : 'text-blue-600'} />
                     </div>
-                    {i === 1 ? 'Acesso Total ao Sistema' : i === 2 ? 'App do Paciente' : 'Suporte VIP via WhatsApp'}
+                    {i === 1 ? 'Acesso Total ao Sistema' : i === 2 ? 'Lembretes via WhatsApp' : 'Suporte VIP via WhatsApp'}
                   </div>
                 ))}
               </div>
