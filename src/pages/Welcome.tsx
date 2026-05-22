@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, CheckCircle2, ArrowRight, Loader2, Sparkles, Stethoscope } from 'lucide-react';
 import api from '../services/api';
@@ -8,6 +8,39 @@ export const Welcome: React.FC = () => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+
+  useEffect(() => {
+    const fbq = (window as any).fbq;
+    if (fbq) {
+      const params = new URLSearchParams(window.location.search);
+      let purchaseValue = 59.90;
+      const valParam = params.get('value');
+      const amtParam = params.get('amount');
+      
+      if (valParam) {
+        const parsed = parseFloat(valParam);
+        if (!isNaN(parsed)) {
+          purchaseValue = parsed;
+        }
+      } else if (amtParam) {
+        const parsed = parseFloat(amtParam);
+        if (!isNaN(parsed)) {
+          if (parsed > 500 && Number.isInteger(parsed)) {
+            purchaseValue = parsed / 100;
+          } else {
+            purchaseValue = parsed;
+          }
+        }
+      }
+
+      const purchaseCurrency = params.get('currency') || 'BRL';
+
+      fbq('track', 'Purchase', {
+        value: purchaseValue,
+        currency: purchaseCurrency,
+      });
+    }
+  }, []);
 
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();

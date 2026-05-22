@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAuth } from './hooks/useAuth';
 import { Layout } from './components/Layout';
@@ -22,6 +22,19 @@ const CheckoutCancel = lazy(() => import('./pages/CheckoutCancel').then(m => ({ 
 const SubscriptionInactive = lazy(() => import('./pages/SubscriptionInactive').then(m => ({ default: m.SubscriptionInactive })));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 
+function RouteChangeTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const fbq = (window as any).fbq;
+    if (fbq) {
+      fbq('track', 'PageView');
+    }
+  }, [location]);
+
+  return null;
+}
+
 export default function App() {
   const { signed, loading } = useAuth();
   const { resolvedTheme } = useTheme();
@@ -43,6 +56,7 @@ export default function App() {
   return (
     <>
       <BrowserRouter>
+        <RouteChangeTracker />
         <Suspense fallback={
           <div className="flex h-screen items-center justify-center px-6">
             <div className="surface-panel flex min-w-[280px] items-center justify-center gap-4 px-6 py-5">

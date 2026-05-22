@@ -153,6 +153,12 @@ export function Signup() {
 
                 <a
                   href={plan.link}
+                  onClick={() => {
+                    const fbq = (window as any).fbq;
+                    if (fbq) {
+                      fbq('track', 'Lead');
+                    }
+                  }}
                   className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-center transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 ${
                     plan.isFeatured
                       ? 'bg-white text-blue-700 hover:bg-slate-50 hover:shadow-lg hover:shadow-white/10'

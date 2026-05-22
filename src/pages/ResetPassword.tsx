@@ -48,6 +48,10 @@ export function ResetPassword() {
         senha: data.password 
       });
       setIsSuccess(true);
+      const fbq = (window as any).fbq;
+      if (fbq) {
+        fbq('track', 'CompleteRegistration');
+      }
       toast.success('Senha redefinida com sucesso!');
       
       setTimeout(() => {

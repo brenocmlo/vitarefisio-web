@@ -428,7 +428,13 @@ const Pricing = () => {
               </div>
 
               <button
-                onClick={() => window.location.href = plan.link}
+                onClick={() => {
+                  const fbq = (window as any).fbq;
+                  if (fbq) {
+                    fbq('track', 'Lead');
+                  }
+                  window.location.href = plan.link;
+                }}
                 className={`w-full py-6 rounded-2xl font-black text-sm uppercase tracking-widest transition-all transform active:scale-95 shadow-xl ${
                   plan.isFeatured 
                     ? 'bg-white text-blue-600 hover:shadow-white/20' 
@@ -466,7 +472,13 @@ const ClinicaCTA = () => {
           </div>
           
           <button
-            onClick={() => window.open('https://wa.me/5585988335991?text=Olá! Sou dono de clínica e gostaria de conhecer os planos especiais do SomosFisio.', '_blank')}
+            onClick={() => {
+              const fbq = (window as any).fbq;
+              if (fbq) {
+                fbq('track', 'Lead');
+              }
+              window.open('https://wa.me/5585988335991?text=Olá! Sou dono de clínica e gostaria de conhecer os planos especiais do SomosFisio.', '_blank');
+            }}
             className="group bg-white text-blue-600 px-12 py-6 rounded-2xl font-black text-xl transition-all transform hover:scale-105 active:scale-95 shadow-2xl flex items-center gap-4"
           >
             FALAR COM ESPECIALISTA
