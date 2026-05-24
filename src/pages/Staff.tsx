@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { UserPlus, ShieldCheck, Mail, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../services/api';
-import { FisioterapeutaFormModal } from '../components/FisioterapeutaFormModal';
+const FisioterapeutaFormModal = lazy(() =>
+  import('../components/FisioterapeutaFormModal').then(module => ({ default: module.FisioterapeutaFormModal }))
+);
 import { useAuth } from '../hooks/useAuth';
 import { AnimatedPage } from '../components/AnimatedPage';
 
@@ -91,11 +93,13 @@ export function Staff() {
           ))}
         </div>
 
-        <FisioterapeutaFormModal 
-          isOpen={isModalOpen} 
-          onClose={() => setIsModalOpen(false)} 
-          onSuccess={loadTeam} 
-        />
+        <Suspense fallback={null}>
+          <FisioterapeutaFormModal 
+            isOpen={isModalOpen} 
+            onClose={() => setIsModalOpen(false)} 
+            onSuccess={loadTeam} 
+          />
+        </Suspense>
       </div>
     </AnimatedPage>
   );

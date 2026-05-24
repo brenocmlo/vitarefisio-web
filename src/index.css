@@ -510,3 +510,14 @@ html.dark {
 .reveal-delay-2 { transition-delay: 0.2s; }
 .reveal-delay-3 { transition-delay: 0.3s; }
 .reveal-delay-4 { transition-delay: 0.4s; }
+
+/* Content Visibility Performance Utilities */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 100px;
+}
+
+.content-visibility-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 200px;
+}

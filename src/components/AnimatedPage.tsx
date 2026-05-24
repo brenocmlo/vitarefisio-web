@@ -34,6 +34,7 @@ export function AnimatedPage({ children }: AnimatedPageProps) {
       initial="initial"
       animate="animate"
       exit="exit"
+      style={{ willChange: 'transform, opacity' }}
     >
       {children}
     </motion.div>

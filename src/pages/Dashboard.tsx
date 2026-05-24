@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState, Suspense, lazy } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
 import {
@@ -18,11 +19,19 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
-import { PatientFormModal } from '../components/PatientFormModal';
-import { AppointmentFormModal } from '../components/AppointmentFormModal';
 import { Skeleton } from '../components/Skeleton';
 import { motion } from 'framer-motion';
 import { AnimatedPage } from '../components/AnimatedPage';
+
+// Shared Components
+import { StatsCard } from '../components/shared/StatsCard';
+
+const PatientFormModal = lazy(() =>
+  import('../components/PatientFormModal').then(module => ({ default: module.PatientFormModal }))
+);
+const AppointmentFormModal = lazy(() =>
+  import('../components/AppointmentFormModal').then(module => ({ default: module.AppointmentFormModal }))
+);
 
 interface Metrics {
   hoje: {
@@ -45,48 +54,42 @@ const currencyFormatter = new Intl.NumberFormat('pt-BR', {
 export function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
 
-  useEffect(() => {
-    async function loadDashboardData() {
-      try {
-        const response = await api.get(`/dashboard?clinica_id=${user?.clinica_id}`);
-        setMetrics(response.data);
-      } catch (error) {
-        console.error('Erro ao carregar dashboard', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadDashboardData();
-  }, [user?.clinica_id]);
+  const { data: metrics, isLoading } = useQuery<Metrics>({
+    queryKey: ['dashboard', user?.clinica_id],
+    queryFn: async () => {
+      const response = await api.get(`/dashboard?clinica_id=${user?.clinica_id}`);
+      return response.data;
+    },
+    enabled: !!user?.clinica_id,
+    staleTime: 1000 * 60 * 5, // 5 minutos de cache ativo
+    gcTime: 1000 * 60 * 10,   // mantido em cache por 10 minutos
+  });
 
   const stats = useMemo(
     () => [
       {
-        title: 'Pacientes ativos',
-        value: metrics?.mes.pacientes_ativos || 0,
+        label: 'Pacientes ativos',
+        value: String(metrics?.mes.pacientes_ativos || 0),
         icon: Users,
         accent: 'bg-sky-500/12 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300',
       },
       {
-        title: 'Agendamentos hoje',
-        value: metrics?.hoje.total_agendamentos || 0,
+        label: 'Agendamentos hoje',
+        value: String(metrics?.hoje.total_agendamentos || 0),
         icon: CalendarIcon,
         accent: 'bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-300',
       },
       {
-        title: 'Faturamento do mês',
+        label: 'Faturamento do mês',
         value: currencyFormatter.format(metrics?.mes.faturamento_estimado || 0),
         icon: TrendingUp,
         accent: 'bg-violet-500/12 text-violet-700 dark:bg-violet-400/12 dark:text-violet-300',
       },
       {
-        title: 'Taxa de faltas',
+        label: 'Taxa de faltas',
         value: `${metrics?.mes.taxa_de_faltas_percentual || 0}%`,
         icon: UserX,
         accent: 'bg-amber-500/12 text-amber-700 dark:bg-amber-400/12 dark:text-amber-300',
@@ -95,7 +98,7 @@ export function Dashboard() {
     [metrics]
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-[280px] w-full rounded-[40px]" />
@@ -168,12 +171,12 @@ export function Dashboard() {
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((item, i) => (
             <motion.div
-              key={item.title}
+              key={item.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 + i * 0.05 }}
             >
-              <MetricCard {...item} />
+              <StatsCard {...item} />
             </motion.div>
           ))}
         </section>
@@ -282,44 +285,30 @@ export function Dashboard() {
         </div>
       </section>
 
-      <PatientFormModal
-        isOpen={isPatientModalOpen}
-        onClose={() => setIsPatientModalOpen(false)}
-        onSuccess={() => {
-          setIsPatientModalOpen(false);
-        }}
-      />
-      <AppointmentFormModal
-        isOpen={isAppointmentModalOpen}
-        onClose={() => setIsAppointmentModalOpen(false)}
-        onSuccess={() => {
-          setIsAppointmentModalOpen(false);
-        }}
-        selectedDate={new Date()}
-      />
+      <Suspense fallback={null}>
+        <PatientFormModal
+          isOpen={isPatientModalOpen}
+          onClose={() => setIsPatientModalOpen(false)}
+          onSuccess={() => {
+            setIsPatientModalOpen(false);
+          }}
+        />
+      </Suspense>
+      <Suspense fallback={null}>
+        <AppointmentFormModal
+          isOpen={isAppointmentModalOpen}
+          onClose={() => setIsAppointmentModalOpen(false)}
+          onSuccess={() => {
+            setIsAppointmentModalOpen(false);
+          }}
+          selectedDate={new Date()}
+        />
+      </Suspense>
       </div>
     </AnimatedPage>
   );
 }
 
-function MetricCard({ title, value, icon: Icon, accent }: any) {
-  return (
-    <div className="stat-card p-5 sm:p-6">
-      <div className="absolute right-4 top-4 h-24 w-24 rounded-full bg-[var(--hero-glow)] blur-2xl" />
-      <div className="relative flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">{title}</p>
-          <h2 className="mt-3 font-display text-2xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50 sm:text-3xl">
-            {value}
-          </h2>
-        </div>
-        <div className={`flex h-12 w-12 items-center justify-center rounded-[20px] ${accent}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function InsightRow({ label, value, description }: { label: string; value: string; description: string }) {
   return (

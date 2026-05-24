@@ -1,11 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import api from '../services/api';
 import { Search, UserPlus, FileText, MoreVertical, Users, ShieldCheck, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { PatientFormModal } from '../components/PatientFormModal';
+const PatientFormModal = lazy(() =>
+  import('../components/PatientFormModal').then(module => ({ default: module.PatientFormModal }))
+);
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'sonner';
 import { AnimatedPage } from '../components/AnimatedPage';
+
+// Shared Components
+import { StatsCard } from '../components/shared/StatsCard';
+import { Pagination } from '../components/shared/Pagination';
 
 interface Patient {
   id: number;
@@ -113,8 +119,18 @@ export function Patients() {
           </div>
 
           <div className="surface-card grid gap-4 p-6 sm:grid-cols-2">
-            <InfoPill icon={Users} label="Total cadastrado" value={String(patients.length)} />
-            <InfoPill icon={ShieldCheck} label="Convênios ativos" value={String(patients.filter((item) => item.convenio_nome).length)} />
+            <StatsCard
+              icon={Users}
+              label="Total cadastrado"
+              value={String(patients.length)}
+              accent="bg-sky-500/10 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300"
+            />
+            <StatsCard
+              icon={ShieldCheck}
+              label="Convênios ativos"
+              value={String(patients.filter((item) => item.convenio_nome).length)}
+              accent="bg-sky-500/10 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300"
+            />
           </div>
         </section>
 
@@ -143,7 +159,7 @@ export function Patients() {
           <div className="surface-panel py-10 text-center text-sm text-slate-500">Nenhum paciente encontrado.</div>
         ) : (
           patients.map((patient) => (
-            <div key={patient.id} className="surface-panel p-4">
+            <div key={patient.id} className="surface-panel p-4 content-visibility-card">
               <div className="flex items-start justify-between">
                 <div className="min-w-0">
                   <p className="truncate font-bold text-slate-900 dark:text-slate-100">{patient.nome}</p>
@@ -259,7 +275,7 @@ export function Patients() {
                 </tr>
               ) : (
                 patients.map((patient) => (
-                  <tr key={patient.id} className="table-row">
+                  <tr key={patient.id} className="table-row content-visibility-auto">
                     <td className="px-6 py-4">
                       <div>
                         <p className="font-bold text-slate-900 dark:text-slate-100">{patient.nome}</p>
@@ -355,47 +371,19 @@ export function Patients() {
           </table>
         </div>
  
-        {/* Pagination Controls */}
-        <div className="mt-6 flex items-center justify-between px-2">
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-            Total: {totalPatients} pacientes
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1 || loading}
-              className="secondary-button py-2 px-4 text-xs disabled:opacity-30"
-            >
-              Anterior
-            </button>
-            <span className="flex items-center px-3 text-xs font-black text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-              {page}
-            </span>
-            <button
-              onClick={() => setPage(p => p + 1)}
-              disabled={patients.length < 20 || loading}
-              className="secondary-button py-2 px-4 text-xs disabled:opacity-30"
-            >
-              Próximo
-            </button>
-          </div>
-        </div>
+        <Pagination
+          page={page}
+          setPage={setPage}
+          totalItems={totalPatients}
+          currentCount={patients.length}
+          loading={loading}
+        />
       </section>
 
-      <PatientFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={loadPatients} />
+      <Suspense fallback={null}>
+        <PatientFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={loadPatients} />
+      </Suspense>
       </div>
     </AnimatedPage>
-  );
-}
-
-function InfoPill({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
-  return (
-    <div className="surface-muted p-4">
-      <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-[18px] bg-sky-500/10 text-sky-700 dark:bg-sky-400/12 dark:text-sky-300">
-        <Icon className="h-5 w-5" />
-      </div>
-      <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{label}</p>
-      <p className="mt-2 font-display text-2xl font-extrabold text-slate-950 dark:text-slate-50">{value}</p>
-    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense, lazy } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import {
@@ -25,9 +25,14 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { AnimatedPage } from '../components/AnimatedPage';
 
-// ✨ Alterado para o novo componente que criamos
-import { NovoPagamentoModal } from '../components/NovoPagamentoModal'; 
+const NovoPagamentoModal = lazy(() =>
+  import('../components/NovoPagamentoModal').then(module => ({ default: module.NovoPagamentoModal }))
+);
 import { Skeleton } from '../components/Skeleton';
+
+// Shared Components
+import { StatsCard } from '../components/shared/StatsCard';
+
 export function Financeiro() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [period, setPeriod] = useState<'7d' | '30d' | 'mes' | 'all' | 'mes-especifico'>('mes');
@@ -384,7 +389,7 @@ export function Financeiro() {
                 visible: { opacity: 1, y: 0 }
               }}
             >
-              <FinancialCard {...card} />
+              <StatsCard {...card} />
             </motion.div>
           ))}
         </motion.section>
@@ -400,7 +405,7 @@ export function Financeiro() {
         
         {transacoes.length > 0 ? (
           transacoes.map((transaction: any) => (
-            <div key={transaction.id} className="surface-panel p-4">
+            <div key={transaction.id} className="surface-panel p-4 content-visibility-card">
               <div className="flex items-start justify-between">
                 <div>
                   <span
@@ -480,7 +485,7 @@ export function Financeiro() {
             <tbody className="divide-y divide-slate-200/70 dark:divide-slate-800">
               {transacoes.length > 0 ? (
                 transacoes.map((transaction: any) => (
-                  <tr key={transaction.id} className="table-row">
+                  <tr key={transaction.id} className="table-row content-visibility-auto">
                     <td className="px-6 py-4">
                       <span
                         className={`status-chip ${
@@ -558,45 +563,10 @@ export function Financeiro() {
       </section>
 
       {/* ✨ Novo Componente Inteligente Aqui */}
-      <NovoPagamentoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={refetch} />
+      <Suspense fallback={null}>
+        <NovoPagamentoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={refetch} />
+      </Suspense>
       </div>
     </AnimatedPage>
-  );
-}
-
-function FinancialCard({
-  icon: Icon,
-  label,
-  value,
-  footer,
-  footerIcon: FooterIcon,
-  accent,
-}: {
-  icon: any;
-  label: string;
-  value: string;
-  footer: string;
-  footerIcon: any;
-  accent: string;
-}) {
-  return (
-    <div className="stat-card">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-300">{label}</p>
-          <h3 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-950 dark:text-slate-50">
-            {value}
-          </h3>
-        </div>
-        <div className={`flex h-12 w-12 items-center justify-center rounded-[20px] ${accent}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-
-      <div className="mt-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-        <FooterIcon className="h-3.5 w-3.5" />
-        {footer}
-      </div>
-    </div>
   );
 }

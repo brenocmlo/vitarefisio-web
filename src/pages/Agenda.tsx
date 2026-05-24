@@ -1,40 +1,28 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, Suspense, lazy } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Calendar as CalendarIcon,
-  LayoutGrid,
-  Clock3,
-  XCircle,
-  Loader2,
-  Layers,
-} from 'lucide-react';
-import {
   format,
-  addDays,
-  subDays,
   startOfMonth,
   endOfMonth,
   startOfWeek,
   endOfWeek,
   eachDayOfInterval,
-  isSameMonth,
-  isSameDay,
-  addMonths,
-  subMonths,
 } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { AppointmentFormModal } from '../components/AppointmentFormModal';
 import { toast } from 'sonner';
-import { Link, useSearchParams } from 'react-router-dom';
+
+const AppointmentFormModal = lazy(() =>
+  import('../components/AppointmentFormModal').then(module => ({ default: module.AppointmentFormModal }))
+);
+import { useSearchParams } from 'react-router-dom';
 import { Skeleton } from '../components/Skeleton';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { AnimatedPage } from '../components/AnimatedPage';
 
-const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+// Sub-components
+import { AgendaHeader } from '../components/agenda/AgendaHeader';
+import { TimeSlotCard } from '../components/agenda/TimeSlotCard';
+import { MonthCalendar } from '../components/agenda/MonthCalendar';
 
 export function Agenda() {
   const [viewMode, setViewMode] = useState<'day' | 'month'>('day');
@@ -48,18 +36,12 @@ export function Agenda() {
       toast.success('Agenda sincronizada com o Google Calendar!', {
         description: 'Seus próximos agendamentos serão enviados automaticamente.',
       });
-      // Limpa o parâmetro da URL sem recarregar a página
       searchParams.delete('google_sync');
       setSearchParams(searchParams);
     }
   }, [searchParams, setSearchParams]);
 
-  function getApiMessage(error: any) {
-    return error?.response?.data?.message || error?.response?.data?.error || 'Não foi possível concluir a ação.';
-  }
-
   const queryClient = useQueryClient();
-
   const queryKey = ['agendamentos', viewMode, format(selectedDate, 'yyyy-MM-dd')];
 
   const fetchAppointments = async () => {
@@ -75,12 +57,10 @@ export function Agenda() {
     return data.filter((app: any) => app.status !== 'cancelado');
   };
 
-  const { data: appointments = [], isLoading, refetch } = useQuery({
+  const { data: appointments = [], isLoading } = useQuery({
     queryKey,
     queryFn: fetchAppointments,
   });
-
-  console.log('📅 Agenda appointments:', appointments);
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: string }) => 
@@ -113,11 +93,11 @@ export function Agenda() {
       );
       return { previousData };
     },
-    onError: (err, id, context) => {
+    onError: (err: any, id, context) => {
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData);
       }
-      toast.error(getApiMessage(err));
+      toast.error(err?.response?.data?.message || 'Erro ao cancelar.');
     },
     onSuccess: () => toast.success('Agendamento cancelado com sucesso.'),
     onSettled: () => queryClient.invalidateQueries({ queryKey })
@@ -134,7 +114,6 @@ export function Agenda() {
     return calendarDays.reduce<Record<string, any[]>>((acc, day) => {
       const key = format(day, 'yyyy-MM-dd');
       acc[key] = appointments.filter((appointment: any) => {
-        // Utiliza o objeto Date para converter para o fuso horário local automaticamente
         const appDate = new Date(appointment.data_hora);
         const keyLocal = format(appDate, 'yyyy-MM-dd');
         return keyLocal === key;
@@ -143,20 +122,20 @@ export function Agenda() {
     }, {});
   }, [appointments, calendarDays]);
 
-  function handleStatusChange(agendamentoId: number, novoStatus: string) {
+  const handleStatusChange = useCallback((agendamentoId: number, novoStatus: string) => {
     statusMutation.mutate({ id: agendamentoId, status: novoStatus });
-  }
+  }, [statusMutation]);
 
-  function handleCancelAppointment(agendamentoId: number) {
+  const handleCancelAppointment = useCallback((agendamentoId: number) => {
     cancelMutation.mutate(agendamentoId);
-  }
+  }, [cancelMutation]);
 
-  function handleOpenModal(hora: string) {
+  const handleOpenModal = useCallback((hora: string) => {
     setSelectedHour(hora);
     setIsModalOpen(true);
-  }
+  }, []);
 
-  async function handleConnectGoogle() {
+  const handleConnectGoogle = useCallback(async () => {
     try {
       const response = await api.get('/google/auth');
       if (response.data.url) {
@@ -165,8 +144,7 @@ export function Agenda() {
     } catch (error) {
       toast.error('Erro ao conectar com Google Calendar.');
     }
-  }
-
+  }, []);
 
   if (isLoading) {
     return (
@@ -184,79 +162,14 @@ export function Agenda() {
   return (
     <AnimatedPage>
       <div className="space-y-6">
-        <section className="surface-panel p-5 sm:p-6">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center">
-              <div className="surface-muted flex w-fit items-center gap-2 p-1.5">
-                <button
-                  onClick={() => setViewMode('day')}
-                  className={`rounded-2xl px-4 py-2.5 text-sm font-bold transition-all ${
-                    viewMode === 'day'
-                      ? 'bg-sky-500 text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)]'
-                      : 'text-slate-500 hover:bg-white/80 dark:text-slate-400 dark:hover:bg-slate-900/60'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <LayoutGrid className="h-4 w-4" />
-                    Dia
-                  </span>
-                </button>
-                <button
-                  onClick={() => setViewMode('month')}
-                  className={`rounded-2xl px-4 py-2.5 text-sm font-bold transition-all ${
-                    viewMode === 'month'
-                      ? 'bg-sky-500 text-white shadow-[0_14px_28px_rgba(14,165,233,0.24)]'
-                      : 'text-slate-500 hover:bg-white/80 dark:text-slate-400 dark:hover:bg-slate-900/60'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4" />
-                    Mês
-                  </span>
-                </button>
-              </div>
-
-              <div>
-                <p className="eyebrow mb-2">Agenda terapêutica</p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setSelectedDate(viewMode === 'day' ? subDays(selectedDate, 1) : subMonths(selectedDate, 1))}
-                    className="icon-button h-10 w-10"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <h2 className="font-display text-2xl font-extrabold capitalize text-slate-950 dark:text-slate-50">
-                    {format(selectedDate, viewMode === 'day' ? "dd 'de' MMMM" : 'MMMM yyyy', { locale: ptBR })}
-                  </h2>
-                  <button
-                    onClick={() => setSelectedDate(viewMode === 'day' ? addDays(selectedDate, 1) : addMonths(selectedDate, 1))}
-                    className="icon-button h-10 w-10"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleConnectGoogle}
-                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-200 dark:hover:bg-slate-900"
-              >
-                <div className="flex h-5 w-5 items-center justify-center rounded-lg bg-red-500/10 p-0.5">
-                  <svg viewBox="0 0 24 24" className="h-full w-full fill-red-500">
-                    <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.92 3.32-2.12 4.52-1.2 1.2-2.84 2.12-5.72 2.12-4.2 0-7.76-3.48-7.76-7.84s3.56-7.84 7.76-7.84c2.28 0 3.92.88 5.16 2.08l2.32-2.32C18.16 3.08 15.68 2 12.48 2 6.44 2 1.56 6.88 1.56 12.92s4.88 10.92 10.92 10.92c3.28 0 5.76-1.08 7.64-3.08 1.92-1.92 2.52-4.64 2.52-6.92 0-.64-.04-1.24-.12-1.84h-10.04z" />
-                  </svg>
-                </div>
-                Google Calendar
-              </button>
-              <button onClick={() => handleOpenModal('08:00')} className="primary-button w-full sm:w-auto">
-                <Plus className="h-4 w-4" />
-                Novo agendamento
-              </button>
-            </div>
-          </div>
-        </section>
+        <AgendaHeader
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          onConnectGoogle={handleConnectGoogle}
+          onOpenModal={handleOpenModal}
+        />
 
         {viewMode === 'day' ? (
           <motion.section
@@ -268,9 +181,7 @@ export function Agenda() {
             className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5"
           >
             {Array.from({ length: 11 }, (_, i) => i + 8).map((hour) => {
-              const timeString = `${hour.toString().padStart(2, '0')}:00`;
               const slotApps = appointments.filter((appointment: any) => {
-                // Utiliza o objeto Date para extrair a hora local
                 if (!appointment.data_hora) return false;
                 const appDate = new Date(appointment.data_hora);
                 const appHour = appDate.getHours();
@@ -278,195 +189,40 @@ export function Agenda() {
               });
 
               return (
-                <motion.div
+                <TimeSlotCard
                   key={hour}
-                  variants={{
-                    hidden: { opacity: 0, y: 10 },
-                    visible: { opacity: 1, y: 0 }
-                  }}
-                  className="surface-card min-h-[220px] p-4"
-                >
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Horário</p>
-                    <h3 className="font-display text-2xl font-extrabold text-slate-950 dark:text-slate-50">{timeString}</h3>
-                  </div>
-                  <div className="flex h-11 w-11 items-center justify-center rounded-[18px] bg-sky-500/10 text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
-                    <Clock3 className="h-5 w-5" />
-                  </div>
-                </div>
-
-                {slotApps.length > 0 ? (
-                  <div className="space-y-3">
-                    {slotApps.map((app: any) => {
-                      const isDone = app.status === 'realizado';
-                      const statusStyles = isDone
-                        ? 'border-emerald-300/60 bg-emerald-500/10 dark:border-emerald-400/20 dark:bg-emerald-400/10'
-                        : 'border-sky-300/60 bg-sky-500/10 dark:border-sky-400/20 dark:bg-sky-400/10';
-
-                      return (
-                        <div key={app.id} className={`rounded-[22px] border p-4 ${statusStyles}`}>
-                          {app.pacote_paciente_id && (
-                            <div className="mb-2 flex items-center gap-1.5 rounded-lg bg-violet-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-violet-700 dark:bg-violet-400/10 dark:text-violet-300">
-                              <Layers size={10} />
-                              Sessão via Pacote
-                            </div>
-                          )}
-                          <Link
-                            to={`/pacientes/${app.paciente_id}/prontuario`}
-                            className="block text-sm font-bold text-slate-900 hover:text-sky-700 dark:text-slate-100 dark:hover:text-sky-300"
-                          >
-                            {app.paciente?.nome}
-                          </Link>
-                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Acompanhe evolução e detalhes do atendimento.</p>
-                          <select
-                            value={app.status}
-                            onChange={(e) => handleStatusChange(app.id, e.target.value)}
-                            className="select-shell mt-4 py-2 text-xs font-bold uppercase tracking-[0.16em]"
-                          >
-                            <option value="agendado">Agendado</option>
-                            <option value="realizado">Realizado</option>
-                            <option value="faltou">Faltou</option>
-                          </select>
-                          <div className="mt-3 grid grid-cols-1 gap-2">
-                            <button
-                              onClick={async () => {
-                                try {
-                                  const response = await api.post(`/agendamentos/${app.id}/reminder`);
-                                  if (response.data.link_whatsapp) {
-                                    window.open(response.data.link_whatsapp, '_blank');
-                                  }
-                                } catch (error: any) {
-                                  toast.error(error.response?.data?.error || 'Erro ao gerar link do WhatsApp.');
-                                }
-                              }}
-                              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-3 py-2.5 text-center text-xs font-bold text-white shadow-[0_8px_20px_rgba(16,185,129,0.25)] transition-all hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700"
-                            >
-                              <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current">
-                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                              </svg>
-                              Lembrete WhatsApp
-                            </button>
-                            <Link
-                              to={`/pacientes/${app.paciente_id}/prontuario`}
-                              className="secondary-button w-full justify-center px-3 py-2.5 text-center text-xs"
-                            >
-                              Ver prontuário
-                            </Link>
-                            <button
-                              type="button"
-                              onClick={() => handleCancelAppointment(app.id)}
-                              disabled={cancelMutation.isPending}
-                              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-3 py-2.5 text-center text-xs font-bold text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-200 dark:hover:bg-red-400/15"
-                            >
-                              {cancelMutation.isPending && cancelMutation.variables === app.id ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                  Cancelando...
-                                </>
-                              ) : (
-                                <>
-                                  <XCircle className="h-4 w-4 shrink-0" />
-                                  <span className="whitespace-normal break-words leading-4">Cancelar agendamento</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleOpenModal(timeString)}
-                    className="flex h-[130px] w-full flex-col items-center justify-center rounded-[24px] border border-dashed border-slate-300 bg-white/40 text-slate-400 transition-all hover:border-sky-300 hover:bg-sky-500/5 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-950/20 dark:hover:border-sky-500 dark:hover:bg-sky-400/5 dark:hover:text-sky-300"
-                  >
-                    <Plus className="mb-2 h-5 w-5" />
-                    <span className="text-sm font-semibold">Adicionar encaixe</span>
-                  </button>
-                )}
-              </motion.div>
-            );
-          })}
-        </motion.section>
-      ) : (
-        <section className="surface-panel overflow-hidden">
-          {/* ... (month view remains same) */}
-          <div className="grid grid-cols-7 border-b border-slate-200/70 dark:border-slate-800">
-            {weekDays.map((day) => (
-              <div key={day} className="px-1 py-3 text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-500 sm:px-3 sm:py-4 sm:text-xs sm:tracking-[0.2em] dark:text-slate-400">
-                <span className="sm:hidden">{day.charAt(0)}</span>
-                <span className="hidden sm:inline">{day}</span>
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7">
-            {calendarDays.map((day, idx) => {
-              const dayKey = format(day, 'yyyy-MM-dd');
-              const dayAppointments = appointmentsByDay[dayKey] || [];
-
-              return (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    setSelectedDate(day);
-                    setViewMode('day');
-                  }}
-                  className={`min-h-[80px] sm:min-h-[132px] border-b border-r p-1 sm:p-3 text-left transition-colors ${
-                    !isSameMonth(day, selectedDate)
-                      ? 'bg-slate-100/45 text-slate-400 dark:bg-slate-900/50 dark:text-slate-600'
-                      : 'bg-transparent hover:bg-sky-500/[0.04] dark:hover:bg-sky-400/[0.05]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`flex h-6 w-6 sm:h-9 sm:w-9 items-center justify-center rounded-full text-[10px] sm:text-sm font-bold ${
-                        isSameDay(day, new Date())
-                          ? 'bg-sky-500 text-white'
-                          : 'text-slate-700 dark:text-slate-200'
-                      }`}
-                    >
-                      {format(day, 'd')}
-                    </span>
-                    {dayAppointments.length > 0 && (
-                      <span className="rounded-full bg-sky-500/10 px-1 sm:px-2 py-0.5 sm:py-1 text-[8px] sm:text-[10px] font-bold text-sky-700 dark:bg-sky-400/10 dark:text-sky-300">
-                        {dayAppointments.length}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mt-2 hidden sm:block space-y-2">
-                    {dayAppointments.slice(0, 3).map((appointment) => (
-                      <div
-                        key={appointment.id}
-                        className="truncate rounded-xl bg-white/70 px-2.5 py-2 text-xs font-semibold text-slate-700 dark:bg-slate-900/60 dark:text-slate-200"
-                      >
-                        {/* Extrai a hora formatada localmente */}
-                        {format(new Date(appointment.data_hora), 'HH:mm')} · {appointment.paciente?.nome}
-                      </div>
-                    ))}
-                    {dayAppointments.length > 3 && (
-                      <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                        +{dayAppointments.length - 3} agendamentos
-                      </div>
-                    )}
-                  </div>
-                </button>
+                  hour={hour}
+                  slotApps={slotApps}
+                  onStatusChange={handleStatusChange}
+                  onCancel={handleCancelAppointment}
+                  onOpenModal={handleOpenModal}
+                  isCancelPending={cancelMutation.isPending}
+                  cancelPendingId={cancelMutation.variables ?? null}
+                />
               );
             })}
-          </div>
-        </section>
-      )}
+          </motion.section>
+        ) : (
+          <MonthCalendar
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            setViewMode={setViewMode}
+            calendarDays={calendarDays}
+            appointmentsByDay={appointmentsByDay}
+          />
+        )}
 
-      <AppointmentFormModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-        }}
-        selectedDate={selectedDate}
-        defaultHour={selectedHour}
-      />
+        <Suspense fallback={null}>
+          <AppointmentFormModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+            }}
+            selectedDate={selectedDate}
+            defaultHour={selectedHour}
+          />
+        </Suspense>
       </div>
     </AnimatedPage>
   );
