@@ -142,6 +142,28 @@ html.dark {
     color: #020617 !important;
   }
 
+  /* Correção de visibilidade: textos claros dentro de seções/containers escuros em modo claro (diurno) */
+  html:not(.dark) .bg-slate-900 .text-slate-400,
+  html:not(.dark) .bg-slate-950 .text-slate-400,
+  html:not(.dark) .bg-slate-900\/40 .text-slate-400,
+  html:not(.dark) .text-white .text-slate-400 {
+    color: rgba(255, 255, 255, 0.6) !important;
+  }
+
+  html:not(.dark) .bg-slate-900 .text-slate-300,
+  html:not(.dark) .bg-slate-950 .text-slate-300,
+  html:not(.dark) .bg-slate-900\/40 .text-slate-300,
+  html:not(.dark) .text-white .text-slate-300 {
+    color: rgba(255, 255, 255, 0.82) !important;
+  }
+
+  html:not(.dark) .bg-slate-900 .text-slate-500,
+  html:not(.dark) .bg-slate-950 .text-slate-500,
+  html:not(.dark) .bg-slate-900\/40 .text-slate-500,
+  html:not(.dark) .text-white .text-slate-500 {
+    color: rgba(255, 255, 255, 0.45) !important;
+  }
+
   html:not(.dark) .placeholder\:text-slate-400::placeholder,
   html:not(.dark) .input-shell::placeholder,
   html:not(.dark) .textarea-shell::placeholder {
