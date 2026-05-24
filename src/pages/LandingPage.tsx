@@ -24,6 +24,7 @@ import {
   Moon
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import logo from '../logo.png';
 
 // --- Sub-components ---
 
@@ -44,9 +45,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
           <Link to="/" className="flex-shrink-0 flex items-center group">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center mr-3 group-hover:rotate-12 transition-transform">
-              <Stethoscope className="text-white" size={24} />
-            </div>
+            <img src={logo} alt="SomosFisio Logo" className="w-10 h-10 rounded-xl mr-3 group-hover:rotate-12 transition-transform" />
             <span className="text-slate-900 dark:text-white font-extrabold text-2xl tracking-tighter">
               somos<span className="text-blue-600">fisio</span>
             </span>
@@ -558,9 +557,7 @@ const Footer = ({ onOpenModal }: { onOpenModal: (type: 'termos' | 'privacidade')
         
         <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center group cursor-pointer">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-              <Stethoscope className="text-white" size={18} />
-            </div>
+            <img src={logo} alt="SomosFisio Logo" className="w-8 h-8 rounded-lg mr-3" />
             <span className="font-black text-xl tracking-tighter">somos<span className="text-blue-500">fisio</span></span>
           </div>
           <p className="text-slate-500 text-sm font-bold">

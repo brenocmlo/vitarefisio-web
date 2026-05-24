@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Mail, CheckCircle2, ArrowRight, Loader2, Sparkles, Stethoscope } from 'lucide-react';
 import api from '../services/api';
 import { toast } from 'sonner';
+import logo from '../logo.png';
 
 export const Welcome: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -71,9 +72,7 @@ export const Welcome: React.FC = () => {
       >
         <div className="mb-8 flex justify-center">
           <div className="flex items-center group">
-            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mr-3 group-hover:rotate-12 transition-transform shadow-lg shadow-blue-500/30">
-              <Stethoscope className="text-white" size={28} />
-            </div>
+            <img src={logo} alt="SomosFisio Logo" className="w-12 h-12 rounded-xl mr-3 group-hover:rotate-12 transition-transform shadow-lg shadow-blue-500/30" />
             <span className="text-slate-900 dark:text-white font-extrabold text-3xl tracking-tighter">
               somos<span className="text-blue-600">fisio</span>
             </span>

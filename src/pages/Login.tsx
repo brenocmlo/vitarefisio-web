@@ -6,6 +6,7 @@ import { ArrowRight, Eye, EyeOff, Loader2, Moon, ShieldCheck, Sparkles, Stethosc
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import logo from '../logo.png';
 import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
 
 const loginSchema = z.object({
@@ -77,9 +78,7 @@ export function Login() {
             </div>
 
             <div>
-              <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-[24px] bg-white/14 backdrop-blur-sm">
-                <Stethoscope className="h-8 w-8" />
-              </div>
+              <img src={logo} alt="SomosFisio Logo" className="mb-6 h-16 w-16 rounded-[24px]" />
               <p className="mb-3 text-xs font-extrabold uppercase tracking-[0.32em] text-sky-100">SomosFisio</p>
               <h1 className="font-display max-w-xl text-4xl font-extrabold leading-tight xl:text-5xl">
                 A rotina clínica com mais presença visual e menos ruído.
