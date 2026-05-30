@@ -21,6 +21,7 @@ const Welcome = lazy(() => import('./pages/Welcome').then(m => ({ default: m.Wel
 const CheckoutCancel = lazy(() => import('./pages/CheckoutCancel').then(m => ({ default: m.CheckoutCancel })));
 const SubscriptionInactive = lazy(() => import('./pages/SubscriptionInactive').then(m => ({ default: m.SubscriptionInactive })));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
+const Formulario = lazy(() => import('./pages/Formulario').then(m => ({ default: m.Formulario })));
 
 function RouteChangeTracker() {
   const location = useLocation();
@@ -70,6 +71,7 @@ export default function App() {
         }>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/formulario" element={<Formulario />} />
             <Route path="/login" element={signed ? <Navigate to="/dashboard" /> : <Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
