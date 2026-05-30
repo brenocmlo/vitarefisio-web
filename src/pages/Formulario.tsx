@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import api from '../services/api';
 
 export function Formulario() {
   const [formData, setFormData] = useState({
@@ -13,6 +14,15 @@ export function Formulario() {
   });
 
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    // Inicializar o Pixel específico do formulário
+    const fbq = (window as any).fbq;
+    if (fbq) {
+      fbq('init', '1586996642399699');
+      fbq('track', 'PageView');
+    }
+  }, []);
 
   const formatTelefone = (value: string) => {
     const cleaned = value.replace(/\D/g, '');
@@ -37,7 +47,7 @@ export function Formulario() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Captcha validation
@@ -67,28 +77,36 @@ export function Formulario() {
       };
       const profissionaisLabel = profissionaisLabels[formData.profissionais] || formData.profissionais;
 
-      // Formatar a mensagem do WhatsApp
-      const message = `Olá SomosFisio! Acabei de preencher o formulário de qualificação para experimentar a plataforma:
+      // 1. Enviar todos os dados para o e-mail da equipe comercial via API do backend
+      await api.post('/leads/qualify', {
+        nome: formData.nome,
+        email: formData.email,
+        senha: formData.senha,
+        telefone: formData.telefone,
+        conselho: conselhoLabel,
+        profissionais: profissionaisLabel,
+      });
+
+      // 2. Formatar a mensagem do WhatsApp (apenas campos permitidos e sem menção a gratuidade)
+      const message = `Olá SomosFisio! Tenho interesse em conhecer seus serviços. Aqui estão meus dados de contato:
 
 * Nome: ${formData.nome}
 * E-mail: ${formData.email}
-* Senha: ${formData.senha}
 * WhatsApp: ${formData.telefone}
 * Conselho: ${conselhoLabel}
-* Qtd Profissionais: ${profissionaisLabel}
+* Qtd Profissionais: ${profissionaisLabel}`;
 
-Gostaria de criar minha conta e iniciar o teste gratuito!`;
-
-      const whatsappUrl = `https://wa.me/5585988335991?text=${encodeURIComponent(message)}`;
+      const whatsappUrl = `https://wa.me/5585991387914?text=${encodeURIComponent(message)}`;
 
       toast.success('Qualificação concluída com sucesso! Redirecionando para o WhatsApp...');
       
       setTimeout(() => {
         window.location.href = whatsappUrl;
       }, 1000);
-    } catch (error) {
+    } catch (error: any) {
       setLoading(false);
-      toast.error('Ocorreu um erro ao processar seu cadastro. Tente novamente.');
+      const errorMsg = error.response?.data?.error || 'Ocorreu um erro ao processar seu cadastro. Tente novamente.';
+      toast.error(errorMsg);
     }
   };
 
