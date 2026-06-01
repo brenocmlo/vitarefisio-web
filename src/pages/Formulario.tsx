@@ -77,15 +77,19 @@ export function Formulario() {
       };
       const profissionaisLabel = profissionaisLabels[formData.profissionais] || formData.profissionais;
 
-      // 1. Enviar todos os dados para o e-mail da equipe comercial via API do backend
-      await api.post('/leads/qualify', {
-        nome: formData.nome,
-        email: formData.email,
-        senha: formData.senha,
-        telefone: formData.telefone,
-        conselho: conselhoLabel,
-        profissionais: profissionaisLabel,
-      });
+      // 1. Enviar todos os dados para o e-mail da equipe comercial via API do backend (sem travar o fluxo caso ocorra falha ou timeout)
+      try {
+        await api.post('/leads/qualify', {
+          nome: formData.nome,
+          email: formData.email,
+          senha: formData.senha,
+          telefone: formData.telefone,
+          conselho: conselhoLabel,
+          profissionais: profissionaisLabel,
+        });
+      } catch (err) {
+        console.error("⚠️ Falha ao reportar lead por e-mail, mas prosseguindo com o WhatsApp:", err);
+      }
 
       // 2. Formatar a mensagem do WhatsApp (apenas campos permitidos e sem menção a gratuidade)
       const message = `Olá SomosFisio! Tenho interesse em conhecer seus serviços. Aqui estão meus dados de contato:
