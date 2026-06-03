@@ -15,15 +15,6 @@ export function Formulario() {
 
   const [loading, setLoading] = useState(false);
 
-  React.useEffect(() => {
-    // Inicializar o Pixel específico do formulário
-    const fbq = (window as any).fbq;
-    if (fbq) {
-      fbq('init', '1586996642399699');
-      fbq('track', 'PageView');
-    }
-  }, []);
-
   const formatTelefone = (value: string) => {
     const cleaned = value.replace(/\D/g, '');
     if (cleaned.length <= 10) {
@@ -62,10 +53,7 @@ export function Formulario() {
       // Disparar pixel de conversão do Meta
       const fbq = (window as any).fbq;
       if (fbq) {
-        fbq('track', 'Lead', {
-          content_category: 'Qualificacao_Geral',
-          content_name: 'Formulario_Experimentar'
-        });
+        fbq('track', 'Lead');
       }
 
       const conselhoLabel = formData.conselho.toUpperCase();
